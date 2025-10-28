@@ -181,7 +181,7 @@ The Java SDK provides the exact same route structure as other SDKs:
 | `/invitations` | GET | Get invitations by target |
 | `/invitations/{id}` | GET/DELETE | Get/revoke specific invitation |
 | `/invitations/accept` | POST | Accept invitations |
-| `/invitations/by-group/{type}/{id}` | GET/DELETE | Group operations |
+| `/invitations/by-group/{type}/{groupId}` | GET/DELETE | Group operations |
 | `/invitations/{id}/reinvite` | POST | Reinvite user |
 
 This ensures perfect compatibility with:

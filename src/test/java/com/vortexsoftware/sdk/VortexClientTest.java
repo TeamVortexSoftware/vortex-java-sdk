@@ -55,7 +55,7 @@ public class VortexClientTest {
                 new InvitationTarget("email", "test@example.com")
         );
         List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("team-1", "team", "Engineering")
+                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
         );
         JWTPayload payload = new JWTPayload("user-123", identifiers, groups, "admin");
 
@@ -85,7 +85,7 @@ public class VortexClientTest {
                 new InvitationTarget("email", "test@example.com")
         );
         List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("team-1", "team", "Engineering")
+                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
         );
         JWTPayload payload = new JWTPayload("user-123", identifiers, groups, null);
 
@@ -268,7 +268,7 @@ public class VortexClientTest {
                 new InvitationTarget("email", "test@example.com")
         );
         List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("team-1", "team", "Engineering")
+                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
         );
         return new JWTPayload("user-123", identifiers, groups, "admin");
     }
