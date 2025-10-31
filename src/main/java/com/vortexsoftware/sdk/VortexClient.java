@@ -88,13 +88,14 @@ public class VortexClient {
             byte[] signingKey = hmacSha256.doFinal(id.getBytes(StandardCharsets.UTF_8));
 
             // Step 5: Build header and payload (same structure as Node.js)
-            Map<String, Object> header = new HashMap<>();
+            // CRITICAL: Use LinkedHashMap to preserve property order for signature compatibility
+            Map<String, Object> header = new LinkedHashMap<>();
             header.put("iat", now);
             header.put("alg", "HS256");
             header.put("typ", "JWT");
             header.put("kid", id);
 
-            Map<String, Object> jwtPayload = new HashMap<>();
+            Map<String, Object> jwtPayload = new LinkedHashMap<>();
             jwtPayload.put("userId", payload.getUserId());
             jwtPayload.put("groups", payload.getGroups());
             jwtPayload.put("role", payload.getRole());

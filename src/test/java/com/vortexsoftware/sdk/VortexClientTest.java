@@ -51,11 +51,11 @@ public class VortexClientTest {
     @Test
     void testJWTGeneration() throws VortexException {
         // Create test payload
-        List<InvitationTarget> identifiers = Arrays.asList(
-                new InvitationTarget("email", "test@example.com")
+        List<Identifier> identifiers = Arrays.asList(
+                new Identifier("email", "test@example.com")
         );
-        List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
+        List<Group> groups = Arrays.asList(
+                new Group("team", "Engineering", "team-1", null)
         );
         JWTPayload payload = new JWTPayload("user-123", identifiers, groups, "admin");
 
@@ -81,11 +81,11 @@ public class VortexClientTest {
     @Test
     void testJWTGenerationWithNullRole() throws VortexException {
         // Test with null role (should still work)
-        List<InvitationTarget> identifiers = Arrays.asList(
-                new InvitationTarget("email", "test@example.com")
+        List<Identifier> identifiers = Arrays.asList(
+                new Identifier("email", "test@example.com")
         );
-        List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
+        List<Group> groups = Arrays.asList(
+                new Group("team", "Engineering", "team-1", null)
         );
         JWTPayload payload = new JWTPayload("user-123", identifiers, groups, null);
 
@@ -264,11 +264,11 @@ public class VortexClientTest {
     }
 
     private JWTPayload createTestPayload() {
-        List<InvitationTarget> identifiers = Arrays.asList(
-                new InvitationTarget("email", "test@example.com")
+        List<Identifier> identifiers = Arrays.asList(
+                new Identifier("email", "test@example.com")
         );
-        List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
+        List<Group> groups = Arrays.asList(
+                new Group("team", "Engineering", "team-1", null)
         );
         return new JWTPayload("user-123", identifiers, groups, "admin");
     }

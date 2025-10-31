@@ -1,7 +1,7 @@
 package com.vortexsoftware.sdk.spring;
 
-import com.vortexsoftware.sdk.types.InvitationGroup;
-import com.vortexsoftware.sdk.types.InvitationTarget;
+import com.vortexsoftware.sdk.types.Group;
+import com.vortexsoftware.sdk.types.Identifier;
 
 import java.util.List;
 
@@ -37,13 +37,13 @@ public interface VortexConfig {
      */
     class VortexUser {
         private String userId;
-        private List<InvitationTarget> identifiers;
-        private List<InvitationGroup> groups;
+        private List<Identifier> identifiers;
+        private List<Group> groups;
         private String role;
 
         public VortexUser() {}
 
-        public VortexUser(String userId, List<InvitationTarget> identifiers, List<InvitationGroup> groups, String role) {
+        public VortexUser(String userId, List<Identifier> identifiers, List<Group> groups, String role) {
             this.userId = userId;
             this.identifiers = identifiers;
             this.groups = groups;
@@ -58,19 +58,19 @@ public interface VortexConfig {
             this.userId = userId;
         }
 
-        public List<InvitationTarget> getIdentifiers() {
+        public List<Identifier> getIdentifiers() {
             return identifiers;
         }
 
-        public void setIdentifiers(List<InvitationTarget> identifiers) {
+        public void setIdentifiers(List<Identifier> identifiers) {
             this.identifiers = identifiers;
         }
 
-        public List<InvitationGroup> getGroups() {
+        public List<Group> getGroups() {
             return groups;
         }
 
-        public void setGroups(List<InvitationGroup> groups) {
+        public void setGroups(List<Group> groups) {
             this.groups = groups;
         }
 

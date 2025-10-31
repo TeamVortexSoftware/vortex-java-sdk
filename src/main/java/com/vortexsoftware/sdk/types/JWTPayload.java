@@ -11,17 +11,17 @@ public class JWTPayload {
     private String userId;
 
     @JsonProperty("identifiers")
-    private List<InvitationTarget> identifiers;
+    private List<Identifier> identifiers;
 
     @JsonProperty("groups")
-    private List<InvitationGroup> groups;
+    private List<Group> groups;
 
     @JsonProperty("role")
     private String role;
 
     public JWTPayload() {}
 
-    public JWTPayload(String userId, List<InvitationTarget> identifiers, List<InvitationGroup> groups, String role) {
+    public JWTPayload(String userId, List<Identifier> identifiers, List<Group> groups, String role) {
         this.userId = userId;
         this.identifiers = identifiers;
         this.groups = groups;
@@ -36,19 +36,19 @@ public class JWTPayload {
         this.userId = userId;
     }
 
-    public List<InvitationTarget> getIdentifiers() {
+    public List<Identifier> getIdentifiers() {
         return identifiers;
     }
 
-    public void setIdentifiers(List<InvitationTarget> identifiers) {
+    public void setIdentifiers(List<Identifier> identifiers) {
         this.identifiers = identifiers;
     }
 
-    public List<InvitationGroup> getGroups() {
+    public List<Group> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<InvitationGroup> groups) {
+    public void setGroups(List<Group> groups) {
         this.groups = groups;
     }
 

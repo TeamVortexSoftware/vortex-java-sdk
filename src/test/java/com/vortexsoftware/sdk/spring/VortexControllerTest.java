@@ -38,11 +38,11 @@ public class VortexControllerTest {
         controller = new VortexController(mockClient, mockConfig);
 
         // Create test user
-        List<InvitationTarget> identifiers = Arrays.asList(
-                new InvitationTarget("email", "test@example.com")
+        List<Identifier> identifiers = Arrays.asList(
+                new Identifier("email", "test@example.com")
         );
-        List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("internal-uuid", "account-id", "team-1", "team", "Engineering", "2025-01-01T00:00:00Z")
+        List<Group> groups = Arrays.asList(
+                new Group("team", "Engineering", "team-1", null)
         );
         testUser = new VortexConfig.VortexUser("user-123", identifiers, groups, "admin");
     }
