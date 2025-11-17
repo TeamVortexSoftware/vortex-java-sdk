@@ -1,15 +1,28 @@
 package com.vortexsoftware.sdk.types;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
  * JWT payload for Vortex token generation
+ *
+ * Supports both new simplified format (userEmail, userIsAutoJoinAdmin) and
+ * legacy format (identifiers, groups, role) for backward compatibility.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class JWTPayload {
     @JsonProperty("userId")
     private String userId;
 
+    // New simplified fields (preferred)
+    @JsonProperty("userEmail")
+    private String userEmail;
+
+    @JsonProperty("userIsAutoJoinAdmin")
+    private Boolean userIsAutoJoinAdmin;
+
+    // Legacy fields (deprecated but still supported for backward compatibility)
     @JsonProperty("identifiers")
     private List<Identifier> identifiers;
 
@@ -21,6 +34,20 @@ public class JWTPayload {
 
     public JWTPayload() {}
 
+    /**
+     * Create a payload with new simplified format (recommended)
+     */
+    public JWTPayload(String userId, String userEmail, Boolean userIsAutoJoinAdmin) {
+        this.userId = userId;
+        this.userEmail = userEmail;
+        this.userIsAutoJoinAdmin = userIsAutoJoinAdmin;
+    }
+
+    /**
+     * Create a payload with legacy format (deprecated)
+     * @deprecated Use constructor with userEmail instead
+     */
+    @Deprecated
     public JWTPayload(String userId, List<Identifier> identifiers, List<Group> groups, String role) {
         this.userId = userId;
         this.identifiers = identifiers;
@@ -34,6 +61,22 @@ public class JWTPayload {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public Boolean getUserIsAutoJoinAdmin() {
+        return userIsAutoJoinAdmin;
+    }
+
+    public void setUserIsAutoJoinAdmin(Boolean userIsAutoJoinAdmin) {
+        this.userIsAutoJoinAdmin = userIsAutoJoinAdmin;
     }
 
     public List<Identifier> getIdentifiers() {
@@ -64,6 +107,8 @@ public class JWTPayload {
     public String toString() {
         return "JWTPayload{" +
                 "userId='" + userId + '\'' +
+                ", userEmail='" + userEmail + '\'' +
+                ", userIsAutoJoinAdmin=" + userIsAutoJoinAdmin +
                 ", identifiers=" + identifiers +
                 ", groups=" + groups +
                 ", role='" + role + '\'' +

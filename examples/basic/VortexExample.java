@@ -49,26 +49,24 @@ public class VortexExample {
         System.out.println("\n🔐 JWT Generation Example");
         System.out.println("--------------------------");
 
-        // Create user identifiers
-        List<InvitationTarget> identifiers = Arrays.asList(
-                new InvitationTarget("email", "admin@example.com"),
-                new InvitationTarget("sms", "+1234567890")
-        );
+        // Example 1: Simple JWT generation
+        System.out.println("\n✨ Simple usage:");
+        User user1 = new User("user-123", "admin@example.com");
+        user1.setAdminScopes(Arrays.asList("autoJoin"));
+        String jwt1 = client.generateJwt(user1, null);
+        System.out.println("✅ Generated JWT: " + jwt1.substring(0, Math.min(jwt1.length(), 50)) + "...");
+        System.out.println("   JWT Length: " + jwt1.length() + " characters");
+        System.out.println("   JWT Parts: " + jwt1.split("\\.").length);
 
-        // Create user groups
-        List<InvitationGroup> groups = Arrays.asList(
-                new InvitationGroup("team-1", "team", "Engineering"),
-                new InvitationGroup("org-1", "organization", "Acme Corp")
-        );
-
-        // Create JWT payload
-        JWTPayload payload = new JWTPayload("user-123", identifiers, groups, "admin");
-
-        // Generate JWT
-        String jwt = client.generateJWT(payload);
-        System.out.println("✅ Generated JWT: " + jwt.substring(0, Math.min(jwt.length(), 50)) + "...");
-        System.out.println("   JWT Length: " + jwt.length() + " characters");
-        System.out.println("   JWT Parts: " + jwt.split("\\.").length);
+        // Example 2: JWT with additional properties
+        System.out.println("\n📦 With additional properties:");
+        User user2 = new User("user-456", "user@example.com");
+        java.util.Map<String, Object> extra = new java.util.HashMap<>();
+        extra.put("role", "admin");
+        extra.put("department", "Engineering");
+        String jwt2 = client.generateJwt(user2, extra);
+        System.out.println("✅ Generated JWT with extra: " + jwt2.substring(0, Math.min(jwt2.length(), 50)) + "...");
+        System.out.println("   JWT Length: " + jwt2.length() + " characters");
     }
 
     private static void demonstrateGetInvitations(VortexClient client) throws VortexException {
@@ -184,14 +182,13 @@ class SpringBootExample {
         @PostMapping("/jwt")
         public ResponseEntity<Map<String, String>> generateJWT(@RequestBody JWTRequest request) {
             try {
-                JWTPayload payload = new JWTPayload(
+                User user = new User(
                     request.getUserId(),
-                    request.getIdentifiers(),
-                    request.getGroups(),
-                    request.getRole()
+                    request.getUserEmail(),
+                    request.getAdminScopes()
                 );
 
-                String jwt = vortexClient.generateJWT(payload);
+                String jwt = vortexClient.generateJwt(user, request.getExtra());
                 return ResponseEntity.ok(Map.of("jwt", jwt));
 
             } catch (VortexException e) {

@@ -61,8 +61,24 @@ public class VortexClient {
      *
      * This replicates the exact JWT generation process from vortex.ts to ensure
      * complete compatibility with React providers.
+     *
+     * @param user User object with id, email, and optional adminScopes
+     * @param extra Optional additional properties to include in JWT payload
+     * @return JWT token
+     *
+     * @example Simple usage
+     *   User user = new User("user-123", "user@example.com");
+     *   user.setAdminScopes(Arrays.asList("autoJoin"));
+     *   String jwt = client.generateJwt(user, null);
+     *
+     * @example With additional properties
+     *   User user = new User("user-123", "user@example.com");
+     *   Map<String, Object> extra = new HashMap<>();
+     *   extra.put("role", "admin");
+     *   extra.put("department", "Engineering");
+     *   String jwt = client.generateJwt(user, extra);
      */
-    public String generateJWT(JWTPayload payload) throws VortexException {
+    public String generateJwt(User user, Map<String, Object> extra) throws VortexException {
         try {
             // Step 1: Parse API key (same format as Node.js: VRTX.encodedId.key)
             String[] parts = apiKey.split("\\.");
@@ -95,12 +111,21 @@ public class VortexClient {
             header.put("typ", "JWT");
             header.put("kid", id);
 
+            // Build payload - start with required fields
             Map<String, Object> jwtPayload = new LinkedHashMap<>();
-            jwtPayload.put("userId", payload.getUserId());
-            jwtPayload.put("groups", payload.getGroups());
-            jwtPayload.put("role", payload.getRole());
+            jwtPayload.put("userId", user.getId());
+            jwtPayload.put("userEmail", user.getEmail());
             jwtPayload.put("expires", expires);
-            jwtPayload.put("identifiers", payload.getIdentifiers());
+
+            // Add userIsAutoJoinAdmin if 'autoJoin' is in adminScopes
+            if (user.getAdminScopes() != null && user.getAdminScopes().contains("autoJoin")) {
+                jwtPayload.put("userIsAutoJoinAdmin", true);
+            }
+
+            // Add any additional properties from extra
+            if (extra != null && !extra.isEmpty()) {
+                jwtPayload.putAll(extra);
+            }
 
             // Step 6: Base64URL encode header and payload (same as Node.js)
             String headerJson = objectMapper.writeValueAsString(header);

@@ -50,17 +50,12 @@ public class VortexClientTest {
 
     @Test
     void testJWTGeneration() throws VortexException {
-        // Create test payload
-        List<Identifier> identifiers = Arrays.asList(
-                new Identifier("email", "test@example.com")
-        );
-        List<Group> groups = Arrays.asList(
-                new Group("team", "Engineering", "team-1", null)
-        );
-        JWTPayload payload = new JWTPayload("user-123", identifiers, groups, "admin");
+        // Create test user
+        User user = new User("user-123", "test@example.com");
+        user.setAdminScopes(Arrays.asList("autoJoin"));
 
         // Generate JWT
-        String jwt = client.generateJWT(payload);
+        String jwt = client.generateJwt(user, null);
 
         // Verify JWT structure (3 parts separated by dots)
         assertNotNull(jwt);
@@ -79,17 +74,24 @@ public class VortexClientTest {
     }
 
     @Test
-    void testJWTGenerationWithNullRole() throws VortexException {
-        // Test with null role (should still work)
-        List<Identifier> identifiers = Arrays.asList(
-                new Identifier("email", "test@example.com")
-        );
-        List<Group> groups = Arrays.asList(
-                new Group("team", "Engineering", "team-1", null)
-        );
-        JWTPayload payload = new JWTPayload("user-123", identifiers, groups, null);
+    void testJWTGenerationWithoutAdminScopes() throws VortexException {
+        // Test without admin scopes
+        User user = new User("user-123", "test@example.com");
 
-        String jwt = client.generateJWT(payload);
+        String jwt = client.generateJwt(user, null);
+        assertNotNull(jwt);
+        assertEquals(3, jwt.split("\\.").length);
+    }
+
+    @Test
+    void testJWTGenerationWithExtraProperties() throws VortexException {
+        // Test with additional properties
+        User user = new User("user-123", "test@example.com");
+        java.util.Map<String, Object> extra = new java.util.HashMap<>();
+        extra.put("role", "admin");
+        extra.put("department", "Engineering");
+
+        String jwt = client.generateJwt(user, extra);
         assertNotNull(jwt);
         assertEquals(3, jwt.split("\\.").length);
     }
@@ -97,19 +99,21 @@ public class VortexClientTest {
     @Test
     void testInvalidAPIKeyFormat() {
         // Test various invalid API key formats
+        User testUser = createTestUser();
+
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("invalid-key");
-            invalidClient.generateJWT(createTestPayload());
+            invalidClient.generateJwt(testUser, null);
         });
 
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("WRONG.format.key");
-            invalidClient.generateJWT(createTestPayload());
+            invalidClient.generateJwt(testUser, null);
         });
 
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("VRTX.only-two-parts");
-            invalidClient.generateJWT(createTestPayload());
+            invalidClient.generateJwt(testUser, null);
         });
     }
 
@@ -263,13 +267,9 @@ public class VortexClientTest {
         assertDoesNotThrow(() -> client.revokeInvitation("inv-123"));
     }
 
-    private JWTPayload createTestPayload() {
-        List<Identifier> identifiers = Arrays.asList(
-                new Identifier("email", "test@example.com")
-        );
-        List<Group> groups = Arrays.asList(
-                new Group("team", "Engineering", "team-1", null)
-        );
-        return new JWTPayload("user-123", identifiers, groups, "admin");
+    private User createTestUser() {
+        User user = new User("user-123", "test@example.com");
+        user.setAdminScopes(Arrays.asList("autoJoin"));
+        return user;
     }
 }

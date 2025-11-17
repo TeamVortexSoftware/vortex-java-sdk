@@ -52,7 +52,7 @@ public class VortexControllerTest {
         // Mock authentication and authorization
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("JWT", testUser)).thenReturn(true);
-        when(mockClient.generateJWT(any(JWTPayload.class))).thenReturn("test-jwt-token");
+        when(mockClient.generateJwt(any(User.class), any())).thenReturn("test-jwt-token");
 
         ResponseEntity<?> response = controller.generateJWT();
 
@@ -88,7 +88,7 @@ public class VortexControllerTest {
     void testGenerateJWT_VortexException() throws VortexException {
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("JWT", testUser)).thenReturn(true);
-        when(mockClient.generateJWT(any(JWTPayload.class))).thenThrow(new VortexException("JWT generation failed"));
+        when(mockClient.generateJwt(any(User.class), any())).thenThrow(new VortexException("JWT generation failed"));
 
         ResponseEntity<?> response = controller.generateJWT();
 

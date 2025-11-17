@@ -30,19 +30,24 @@ Add to your `pom.xml`:
 ```java
 import com.vortexsoftware.sdk.VortexClient;
 import com.vortexsoftware.sdk.types.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 // Create client
 VortexClient client = new VortexClient("your-api-key-here");
 
-// Generate JWT for a user
-List<InvitationTarget> identifiers = Arrays.asList(
-    new InvitationTarget("email", "user@example.com")
-);
-List<InvitationGroup> groups = Arrays.asList(
-    new InvitationGroup("team-1", "team", "Engineering")
-);
-JWTPayload payload = new JWTPayload("user-123", identifiers, groups, "admin");
-String jwt = client.generateJWT(payload);
+// Generate JWT - simple usage
+User user = new User("user-123", "user@example.com");
+user.setAdminScopes(Arrays.asList("autoJoin"));
+String jwt = client.generateJwt(user, null);
+
+// Generate JWT with additional properties
+User user2 = new User("user-456", "admin@example.com");
+Map<String, Object> extra = new HashMap<>();
+extra.put("role", "admin");
+extra.put("department", "Engineering");
+String jwt2 = client.generateJwt(user2, extra);
 
 // Get invitations by target
 List<InvitationResult> invitations = client.getInvitationsByTarget("email", "user@example.com");
@@ -90,12 +95,11 @@ public class VortexConfiguration {
                     return null;
                 }
 
-                // Convert to VortexUser
+                // Convert to VortexUser with new format
                 return new VortexUser(
                     auth.getName(),
-                    Arrays.asList(new InvitationTarget("email", auth.getName())),
-                    getUserGroups(auth),
-                    getRole(auth)
+                    getUserEmail(auth),
+                    isAutoJoinAdmin(auth)
                 );
             }
 
@@ -116,14 +120,31 @@ public class VortexConfiguration {
 #### JWT Generation
 
 ```java
-public String generateJWT(JWTPayload payload) throws VortexException
+public String generateJwt(User user, Map<String, Object> extra) throws VortexException
 ```
 
-Generates a JWT token using the same algorithm as the Node.js SDK. The JWT includes:
-- User ID and identifiers
-- Group memberships
-- Role information
+Generates a JWT token with the following structure:
+- User ID and email (required)
+- Admin scopes (optional) - if `adminScopes` contains `"autoJoin"`, sets `userIsAutoJoinAdmin: true` in JWT
+- Additional properties from `extra` parameter
 - Expiration (1 hour from generation)
+
+Example:
+```java
+// Simple usage
+User user = new User("user-123", "user@example.com");
+user.setAdminScopes(Arrays.asList("autoJoin"));
+String jwt = client.generateJwt(user, null);
+
+// With additional properties
+User user2 = new User("user-456", "user@example.com");
+Map<String, Object> extra = new HashMap<>();
+extra.put("role", "admin");
+extra.put("department", "Engineering");
+String jwt2 = client.generateJwt(user2, extra);
+```
+
+Uses the same algorithm as other Vortex SDKs for perfect cross-platform compatibility.
 
 #### Invitation Management
 
@@ -156,6 +177,9 @@ public void deleteInvitationsByGroup(String groupType, String groupId)
 
 ### Types
 
+#### User
+User data for JWT generation with id, email, and optional adminScopes.
+
 #### InvitationResult
 Complete invitation data with status, delivery information, and metadata.
 
@@ -164,9 +188,6 @@ Represents invitation targets (email, SMS, etc.).
 
 #### InvitationGroup
 Group membership information.
-
-#### JWTPayload
-User data for JWT generation.
 
 #### AcceptInvitationRequest
 Request payload for accepting invitations.
@@ -280,15 +301,15 @@ public class MyVortexController {
         try {
             // Extract user from request
             String userId = getCurrentUserId(request);
+            String userEmail = getCurrentUserEmail(request);
 
-            JWTPayload payload = new JWTPayload(
-                userId,
-                Arrays.asList(new InvitationTarget("email", getCurrentUserEmail(request))),
-                getCurrentUserGroups(request),
-                getCurrentUserRole(request)
-            );
+            // Build user with admin scopes if applicable
+            User user = new User(userId, userEmail);
+            if (userIsAutoJoinAdmin(request)) {
+                user.setAdminScopes(Arrays.asList("autoJoin"));
+            }
 
-            String jwt = vortexClient.generateJWT(payload);
+            String jwt = vortexClient.generateJwt(user, null);
             return ResponseEntity.ok(Map.of("jwt", jwt));
 
         } catch (VortexException e) {
@@ -306,16 +327,12 @@ public class VortexExample {
     public static void main(String[] args) {
         try (VortexClient client = new VortexClient("VRTX.your.api.key")) {
 
-            // Create user payload
-            JWTPayload payload = new JWTPayload(
-                "user-123",
-                Arrays.asList(new InvitationTarget("email", "user@example.com")),
-                Arrays.asList(new InvitationGroup("team-1", "team", "Engineering")),
-                "admin"
-            );
+            // Create user
+            User user = new User("user-123", "user@example.com");
+            user.setAdminScopes(Arrays.asList("autoJoin"));
 
             // Generate JWT
-            String jwt = client.generateJWT(payload);
+            String jwt = client.generateJwt(user, null);
             System.out.println("Generated JWT: " + jwt);
 
             // Get invitations

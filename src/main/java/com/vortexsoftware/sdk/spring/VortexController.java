@@ -51,14 +51,17 @@ public class VortexController {
                         .body(Map.of("error", "Not authorized to generate JWT"));
             }
 
-            JWTPayload payload = new JWTPayload(
-                    user.getUserId(),
-                    user.getIdentifiers(),
-                    user.getGroups(),
-                    user.getRole()
-            );
+            // Build User object with adminScopes
+            List<String> adminScopes = null;
+            if (user.getUserIsAutoJoinAdmin() != null && user.getUserIsAutoJoinAdmin()) {
+                adminScopes = List.of("autoJoin");
+            }
 
-            String jwt = vortexClient.generateJWT(payload);
+            User vortexUser = new User(user.getUserId(), user.getUserEmail(), adminScopes);
+
+            logger.debug("Generating JWT for user {}", user.getUserId());
+            String jwt = vortexClient.generateJwt(vortexUser, null);
+
             return ResponseEntity.ok(Map.of("jwt", jwt));
 
         } catch (VortexException e) {
