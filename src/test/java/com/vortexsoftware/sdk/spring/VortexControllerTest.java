@@ -52,7 +52,7 @@ public class VortexControllerTest {
         // Mock authentication and authorization
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("JWT", testUser)).thenReturn(true);
-        when(mockClient.generateJwt(any(User.class), any())).thenReturn("test-jwt-token");
+        when(mockClient.generateJwt(anyMap())).thenReturn("test-jwt-token");
 
         ResponseEntity<?> response = controller.generateJWT();
 
@@ -88,7 +88,7 @@ public class VortexControllerTest {
     void testGenerateJWT_VortexException() throws VortexException {
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("JWT", testUser)).thenReturn(true);
-        when(mockClient.generateJwt(any(User.class), any())).thenThrow(new VortexException("JWT generation failed"));
+        when(mockClient.generateJwt(anyMap())).thenThrow(new VortexException("JWT generation failed"));
 
         ResponseEntity<?> response = controller.generateJWT();
 
@@ -170,17 +170,19 @@ public class VortexControllerTest {
         InvitationResult result = new InvitationResult();
         result.setId("inv-123");
         result.setStatus("accepted");
+        List<InvitationResult> results = Arrays.asList(result);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("ACCEPT_INVITATIONS", testUser)).thenReturn(true);
-        when(mockClient.acceptInvitations(request.getInvitationIds(), request.getTarget())).thenReturn(result);
+        when(mockClient.acceptInvitations(request.getInvitationIds(), request.getTarget())).thenReturn(results);
 
         ResponseEntity<?> response = controller.acceptInvitations(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        InvitationResult returnedResult = (InvitationResult) response.getBody();
-        assertEquals("inv-123", returnedResult.getId());
-        assertEquals("accepted", returnedResult.getStatus());
+        List<InvitationResult> returnedResults = (List<InvitationResult>) response.getBody();
+        assertEquals(1, returnedResults.size());
+        assertEquals("inv-123", returnedResults.get(0).getId());
+        assertEquals("accepted", returnedResults.get(0).getStatus());
     }
 
     @Test

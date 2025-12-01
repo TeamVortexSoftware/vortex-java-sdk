@@ -8,7 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,8 +56,12 @@ public class VortexClientTest {
         User user = new User("user-123", "test@example.com");
         user.setAdminScopes(Arrays.asList("autoJoin"));
 
+        // Build params map matching Node.js SDK pattern
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", user);
+
         // Generate JWT
-        String jwt = client.generateJwt(user, null);
+        String jwt = client.generateJwt(params);
 
         // Verify JWT structure (3 parts separated by dots)
         assertNotNull(jwt);
@@ -78,7 +84,10 @@ public class VortexClientTest {
         // Test without admin scopes
         User user = new User("user-123", "test@example.com");
 
-        String jwt = client.generateJwt(user, null);
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", user);
+
+        String jwt = client.generateJwt(params);
         assertNotNull(jwt);
         assertEquals(3, jwt.split("\\.").length);
     }
@@ -87,11 +96,13 @@ public class VortexClientTest {
     void testJWTGenerationWithExtraProperties() throws VortexException {
         // Test with additional properties
         User user = new User("user-123", "test@example.com");
-        java.util.Map<String, Object> extra = new java.util.HashMap<>();
-        extra.put("role", "admin");
-        extra.put("department", "Engineering");
 
-        String jwt = client.generateJwt(user, extra);
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", user);
+        params.put("role", "admin");
+        params.put("department", "Engineering");
+
+        String jwt = client.generateJwt(params);
         assertNotNull(jwt);
         assertEquals(3, jwt.split("\\.").length);
     }
@@ -100,20 +111,22 @@ public class VortexClientTest {
     void testInvalidAPIKeyFormat() {
         // Test various invalid API key formats
         User testUser = createTestUser();
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", testUser);
 
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("invalid-key");
-            invalidClient.generateJwt(testUser, null);
+            invalidClient.generateJwt(params);
         });
 
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("WRONG.format.key");
-            invalidClient.generateJwt(testUser, null);
+            invalidClient.generateJwt(params);
         });
 
         assertThrows(VortexException.class, () -> {
             VortexClient invalidClient = new VortexClient("VRTX.only-two-parts");
-            invalidClient.generateJwt(testUser, null);
+            invalidClient.generateJwt(params);
         });
     }
 
@@ -172,20 +185,21 @@ public class VortexClientTest {
         List<String> invitationIds = Arrays.asList("inv-123", "inv-456");
         InvitationTarget target = new InvitationTarget("email", "test@example.com");
 
-        // Mock API response
+        // Mock API response - returns { invitations: [...] }
         stubFor(post(urlPathEqualTo("/api/v1/invitations/accept"))
                 .withRequestBody(matchingJsonPath("$.invitationIds"))
                 .withRequestBody(matchingJsonPath("$.target"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("{\"id\": \"inv-123\", \"status\": \"accepted\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": []}")));
+                        .withBody("{\"invitations\": [{\"id\": \"inv-123\", \"status\": \"accepted\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": []}]}")));
 
-        InvitationResult result = client.acceptInvitations(invitationIds, target);
+        List<InvitationResult> results = client.acceptInvitations(invitationIds, target);
 
-        assertNotNull(result);
-        assertEquals("inv-123", result.getId());
-        assertEquals("accepted", result.getStatus());
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("inv-123", results.get(0).getId());
+        assertEquals("accepted", results.get(0).getStatus());
     }
 
     @Test

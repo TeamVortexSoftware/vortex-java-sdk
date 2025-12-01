@@ -18,8 +18,11 @@ public class InvitationAcceptance {
     @JsonProperty("acceptedAt")
     private String acceptedAt;
 
-    @JsonProperty("target")
-    private InvitationTarget target;
+    @JsonProperty("targetType")
+    private String targetType;
+
+    @JsonProperty("targetValue")
+    private String targetValue;
 
     public InvitationAcceptance() {}
 
@@ -55,12 +58,20 @@ public class InvitationAcceptance {
         this.acceptedAt = acceptedAt;
     }
 
-    public InvitationTarget getTarget() {
-        return target;
+    public String getTargetType() {
+        return targetType;
     }
 
-    public void setTarget(InvitationTarget target) {
-        this.target = target;
+    public void setTargetType(String targetType) {
+        this.targetType = targetType;
+    }
+
+    public String getTargetValue() {
+        return targetValue;
+    }
+
+    public void setTargetValue(String targetValue) {
+        this.targetValue = targetValue;
     }
 
     @Override
@@ -70,7 +81,8 @@ public class InvitationAcceptance {
                 ", accountId='" + accountId + '\'' +
                 ", projectId='" + projectId + '\'' +
                 ", acceptedAt='" + acceptedAt + '\'' +
-                ", target=" + target +
+                ", targetType='" + targetType + '\'' +
+                ", targetValue='" + targetValue + '\'' +
                 '}';
     }
 }

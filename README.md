@@ -125,7 +125,7 @@ public String generateJwt(User user, Map<String, Object> extra) throws VortexExc
 
 Generates a JWT token with the following structure:
 - User ID and email (required)
-- Admin scopes (optional) - if `adminScopes` contains `"autoJoin"`, sets `userIsAutoJoinAdmin: true` in JWT
+- Admin scopes (optional) - full `adminScopes` array is included in JWT payload
 - Additional properties from `extra` parameter
 - Expiration (1 hour from generation)
 
@@ -159,7 +159,7 @@ public InvitationResult getInvitation(String invitationId)
 public void revokeInvitation(String invitationId)
 
 // Accept invitations
-public InvitationResult acceptInvitations(List<String> invitationIds, InvitationTarget target)
+public List<InvitationResult> acceptInvitations(List<String> invitationIds, InvitationTarget target)
 
 // Reinvite user
 public InvitationResult reinvite(String invitationId)

@@ -53,7 +53,11 @@ public class VortexExample {
         System.out.println("\n✨ Simple usage:");
         User user1 = new User("user-123", "admin@example.com");
         user1.setAdminScopes(Arrays.asList("autoJoin"));
-        String jwt1 = client.generateJwt(user1, null);
+
+        java.util.Map<String, Object> params1 = new java.util.HashMap<>();
+        params1.put("user", user1);
+
+        String jwt1 = client.generateJwt(params1);
         System.out.println("✅ Generated JWT: " + jwt1.substring(0, Math.min(jwt1.length(), 50)) + "...");
         System.out.println("   JWT Length: " + jwt1.length() + " characters");
         System.out.println("   JWT Parts: " + jwt1.split("\\.").length);
@@ -61,10 +65,13 @@ public class VortexExample {
         // Example 2: JWT with additional properties
         System.out.println("\n📦 With additional properties:");
         User user2 = new User("user-456", "user@example.com");
-        java.util.Map<String, Object> extra = new java.util.HashMap<>();
-        extra.put("role", "admin");
-        extra.put("department", "Engineering");
-        String jwt2 = client.generateJwt(user2, extra);
+
+        java.util.Map<String, Object> params2 = new java.util.HashMap<>();
+        params2.put("user", user2);
+        params2.put("role", "admin");
+        params2.put("department", "Engineering");
+
+        String jwt2 = client.generateJwt(params2);
         System.out.println("✅ Generated JWT with extra: " + jwt2.substring(0, Math.min(jwt2.length(), 50)) + "...");
         System.out.println("   JWT Length: " + jwt2.length() + " characters");
     }
@@ -117,11 +124,11 @@ public class VortexExample {
 
             // Try to accept invitations
             InvitationTarget target = new InvitationTarget("email", "newuser@example.com");
-            InvitationResult accepted = client.acceptInvitations(
+            List<InvitationResult> accepted = client.acceptInvitations(
                     Arrays.asList("inv-1", "inv-2"),
                     target
             );
-            System.out.println("✅ Accepted invitations, result: " + accepted.getId());
+            System.out.println("✅ Accepted invitations, count: " + accepted.size());
 
             // Try to revoke an invitation
             client.revokeInvitation("test-invitation-id");
@@ -188,7 +195,14 @@ class SpringBootExample {
                     request.getAdminScopes()
                 );
 
-                String jwt = vortexClient.generateJwt(user, request.getExtra());
+                // Build params map matching Node.js SDK pattern
+                java.util.Map<String, Object> params = new java.util.HashMap<>();
+                params.put("user", user);
+                if (request.getExtra() != null) {
+                    params.putAll(request.getExtra());
+                }
+
+                String jwt = vortexClient.generateJwt(params);
                 return ResponseEntity.ok(Map.of("jwt", jwt));
 
             } catch (VortexException e) {

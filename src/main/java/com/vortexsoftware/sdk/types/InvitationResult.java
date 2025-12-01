@@ -65,6 +65,18 @@ public class InvitationResult {
     @JsonProperty("accepts")
     private List<InvitationAcceptance> accepts;
 
+    @JsonProperty("scope")
+    private String scope;
+
+    @JsonProperty("scopeType")
+    private String scopeType;
+
+    @JsonProperty("expired")
+    private boolean expired;
+
+    @JsonProperty("expires")
+    private String expires;
+
     public InvitationResult() {}
 
     // Getters and setters
@@ -220,6 +232,38 @@ public class InvitationResult {
         this.accepts = accepts;
     }
 
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getScopeType() {
+        return scopeType;
+    }
+
+    public void setScopeType(String scopeType) {
+        this.scopeType = scopeType;
+    }
+
+    public boolean isExpired() {
+        return expired;
+    }
+
+    public void setExpired(boolean expired) {
+        this.expired = expired;
+    }
+
+    public String getExpires() {
+        return expires;
+    }
+
+    public void setExpires(String expires) {
+        this.expires = expires;
+    }
+
     @Override
     public String toString() {
         return "InvitationResult{" +
@@ -228,6 +272,8 @@ public class InvitationResult {
                 ", status='" + status + '\'' +
                 ", invitationType='" + invitationType + '\'' +
                 ", projectId='" + projectId + '\'' +
+                ", scope='" + scope + '\'' +
+                ", scopeType='" + scopeType + '\'' +
                 '}';
     }
 }

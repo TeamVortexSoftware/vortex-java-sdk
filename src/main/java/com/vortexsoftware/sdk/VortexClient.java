@@ -59,27 +59,47 @@ public class VortexClient {
     /**
      * Generate a JWT using the same algorithm as the Node.js SDK
      *
-     * This replicates the exact JWT generation process from vortex.ts to ensure
-     * complete compatibility with React providers.
+     * <p>This replicates the exact JWT generation process from vortex.ts to ensure
+     * complete compatibility with React providers.</p>
      *
-     * @param user User object with id, email, and optional adminScopes
-     * @param extra Optional additional properties to include in JWT payload
+     * <p>Simple usage:</p>
+     * <pre>{@code
+     * Map<String, Object> params = new HashMap<>();
+     * User user = new User("user-123", "user@example.com");
+     * user.setAdminScopes(Arrays.asList("autoJoin"));
+     * params.put("user", user);
+     * String jwt = client.generateJwt(params);
+     * }</pre>
+     *
+     * <p>With additional properties:</p>
+     * <pre>{@code
+     * Map<String, Object> params = new HashMap<>();
+     * User user = new User("user-123", "user@example.com");
+     * params.put("user", user);
+     * params.put("role", "admin");
+     * params.put("department", "Engineering");
+     * String jwt = client.generateJwt(params);
+     * }</pre>
+     *
+     * @param params Map containing "user" key with User object and optional additional properties
      * @return JWT token
-     *
-     * @example Simple usage
-     *   User user = new User("user-123", "user@example.com");
-     *   user.setAdminScopes(Arrays.asList("autoJoin"));
-     *   String jwt = client.generateJwt(user, null);
-     *
-     * @example With additional properties
-     *   User user = new User("user-123", "user@example.com");
-     *   Map<String, Object> extra = new HashMap<>();
-     *   extra.put("role", "admin");
-     *   extra.put("department", "Engineering");
-     *   String jwt = client.generateJwt(user, extra);
+     * @throws VortexException if JWT generation fails
      */
-    public String generateJwt(User user, Map<String, Object> extra) throws VortexException {
+    public String generateJwt(Map<String, Object> params) throws VortexException {
         try {
+            // Extract user from params
+            if (params == null || !params.containsKey("user")) {
+                throw new VortexException("params must contain 'user' key");
+            }
+
+            Object userObj = params.get("user");
+            User user;
+            if (userObj instanceof User) {
+                user = (User) userObj;
+            } else {
+                throw new VortexException("'user' must be a User object");
+            }
+
             // Step 1: Parse API key (same format as Node.js: VRTX.encodedId.key)
             String[] parts = apiKey.split("\\.");
             if (parts.length != 3 || !"VRTX".equals(parts[0])) {
@@ -117,14 +137,16 @@ public class VortexClient {
             jwtPayload.put("userEmail", user.getEmail());
             jwtPayload.put("expires", expires);
 
-            // Add userIsAutoJoinAdmin if 'autoJoin' is in adminScopes
-            if (user.getAdminScopes() != null && user.getAdminScopes().contains("autoJoin")) {
-                jwtPayload.put("userIsAutoJoinAdmin", true);
+            // Add adminScopes if present
+            if (user.getAdminScopes() != null) {
+                jwtPayload.put("adminScopes", user.getAdminScopes());
             }
 
-            // Add any additional properties from extra
-            if (extra != null && !extra.isEmpty()) {
-                jwtPayload.putAll(extra);
+            // Add any additional properties from params (excluding 'user')
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                if (!"user".equals(entry.getKey())) {
+                    jwtPayload.put(entry.getKey(), entry.getValue());
+                }
             }
 
             // Step 6: Base64URL encode header and payload (same as Node.js)
@@ -232,9 +254,10 @@ public class VortexClient {
     /**
      * Accept multiple invitations for a target
      */
-    public InvitationResult acceptInvitations(List<String> invitationIds, InvitationTarget target) throws VortexException {
+    public List<InvitationResult> acceptInvitations(List<String> invitationIds, InvitationTarget target) throws VortexException {
         AcceptInvitationRequest request = new AcceptInvitationRequest(invitationIds, target);
-        return apiRequest("POST", "/api/v1/invitations/accept", request, null, new TypeReference<InvitationResult>() {});
+        InvitationResponse response = apiRequest("POST", "/api/v1/invitations/accept", request, null, new TypeReference<InvitationResponse>() {});
+        return response != null ? response.getInvitations() : new ArrayList<>();
     }
 
     /**

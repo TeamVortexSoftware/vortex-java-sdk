@@ -60,7 +60,12 @@ public class VortexController {
             User vortexUser = new User(user.getUserId(), user.getUserEmail(), adminScopes);
 
             logger.debug("Generating JWT for user {}", user.getUserId());
-            String jwt = vortexClient.generateJwt(vortexUser, null);
+
+            // Build params map matching Node.js SDK pattern
+            Map<String, Object> params = new HashMap<>();
+            params.put("user", vortexUser);
+
+            String jwt = vortexClient.generateJwt(params);
 
             return ResponseEntity.ok(Map.of("jwt", jwt));
 
@@ -175,11 +180,11 @@ public class VortexController {
                         .body(Map.of("error", "Not authorized to accept invitations"));
             }
 
-            InvitationResult result = vortexClient.acceptInvitations(
+            List<InvitationResult> results = vortexClient.acceptInvitations(
                     request.getInvitationIds(),
                     request.getTarget()
             );
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(results);
 
         } catch (VortexException e) {
             logger.error("Failed to accept invitations", e);
