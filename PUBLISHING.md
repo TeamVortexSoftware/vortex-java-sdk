@@ -10,14 +10,7 @@ Maven Central is the primary repository for Java artifacts. Publishing requires:
 - Sonatype account and verification
 - Source and Javadoc JARs
 
-## Prerequisites
-
-### 1. Sonatype Account
-
-1. Create an account at [Sonatype JIRA](https://issues.sonatype.org/secure/Signup!default.jspa)
-2. Create a ticket to claim your group ID (e.g., `com.vortexsoftware`)
-   - Example: [OSSRH-XXXXX](https://issues.sonatype.org/browse/OSSRH)
-   - Verify domain ownership or GitHub organization
+## First time setup (don't need to do this)
 
 ### 2. GPG Key for Signing
 
@@ -37,6 +30,33 @@ gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
 gpg --keyserver keys.openpgp.org --send-keys YOUR_KEY_ID
 ```
 
+## Prerequisites
+
+### 1. Sonatype Account
+
+1. Create an account at [Sonatype JIRA](https://issues.sonatype.org/secure/Signup!default.jspa)
+2. Create a ticket to claim your group ID (e.g., `com.vortexsoftware`)
+   - Example: [OSSRH-XXXXX](https://issues.sonatype.org/browse/OSSRH)
+   - Verify domain ownership or GitHub organization
+
+### 2. Import existing GPG key for Signing
+
+Dump the private key to a temporary file
+
+```bash
+echo "$(vortex secrets read -k ops/providers/maven/service-account/vortexsoftwareops -p privateKey)" > /tmp/gpg-private-key
+```
+
+Edit the private key so that 
+
+`-----BEGIN PGP PRIVATE KEY BLOCK-----` and `-----END PGP PRIVATE KEY BLOCK-----` are on a separate line by themselves
+
+Import the gpg key
+
+```bash
+gpg --import /tmp/gpg-private-key
+```
+
 ### 3. Maven Configuration
 
 Create or update `~/.m2/settings.xml`:
@@ -46,8 +66,8 @@ Create or update `~/.m2/settings.xml`:
   <servers>
     <server>
       <id>central</id>
-      <username>YOUR_SONATYPE_USERNAME</username>
-      <password>YOUR_SONATYPE_PASSWORD</password>
+      <username>USER_TOKEN_USERNAME</username>
+      <password>USER_TOKEN_PASSWORD</password>
     </server>
   </servers>
 
@@ -62,6 +82,19 @@ Create or update `~/.m2/settings.xml`:
   </profiles>
 </settings>
 ```
+
+You can obtain the <server> sections using 
+
+```bash
+vortex secrets read -k ops/providers/maven/service-account/vortexsoftwareops -p userTokenSettingsXML | pbcopy
+```
+
+and YOUR_GPG_PASSPHRASE from 
+
+```bash
+vortex secrets read -k ops/providers/maven/service-account/vortexsoftwareops -p gpgpassphrase
+```
+
 
 **Security Note**: Use [encrypted passwords](https://maven.apache.org/guides/mini/guide-encryption.html) or environment variables.
 
