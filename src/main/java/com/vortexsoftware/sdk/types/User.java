@@ -12,12 +12,12 @@ import java.util.List;
  * - email: User's email address
  *
  * Optional fields:
- * - adminScopes: List of admin scopes (e.g., ["autoJoin"])
+ * - adminScopes: List of admin scopes (e.g., ["autojoin"])
  *
  * Example:
  * <pre>{@code
  * User user = new User("user-123", "user@example.com");
- * user.setAdminScopes(Arrays.asList("autoJoin"));
+ * user.setAdminScopes(Arrays.asList("autojoin"));
  * }</pre>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -52,7 +52,7 @@ public class User {
      *
      * @param id User's unique identifier
      * @param email User's email address
-     * @param adminScopes List of admin scopes (e.g., ["autoJoin"])
+     * @param adminScopes List of admin scopes (e.g., ["autojoin"])
      */
     public User(String id, String email, List<String> adminScopes) {
         this.id = id;

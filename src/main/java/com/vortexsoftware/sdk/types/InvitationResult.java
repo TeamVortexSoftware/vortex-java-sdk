@@ -1,5 +1,6 @@
 package com.vortexsoftware.sdk.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 /**
  * Complete invitation result as returned by the Vortex API
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InvitationResult {
     @JsonProperty("id")
     private String id;
@@ -76,6 +78,12 @@ public class InvitationResult {
 
     @JsonProperty("expires")
     private String expires;
+
+    @JsonProperty("metadata")
+    private Map<String, Object> metadata;
+
+    @JsonProperty("passThrough")
+    private String passThrough;
 
     public InvitationResult() {}
 
@@ -262,6 +270,22 @@ public class InvitationResult {
 
     public void setExpires(String expires) {
         this.expires = expires;
+    }
+
+    public Map<String, Object> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
+
+    public String getPassThrough() {
+        return passThrough;
+    }
+
+    public void setPassThrough(String passThrough) {
+        this.passThrough = passThrough;
     }
 
     @Override

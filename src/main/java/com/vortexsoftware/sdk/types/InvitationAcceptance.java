@@ -1,6 +1,7 @@
 package com.vortexsoftware.sdk.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 /**
  * Represents an accepted invitation
@@ -23,6 +24,9 @@ public class InvitationAcceptance {
 
     @JsonProperty("targetValue")
     private String targetValue;
+
+    @JsonProperty("identifiers")
+    private Map<String, String> identifiers;
 
     public InvitationAcceptance() {}
 
@@ -72,6 +76,14 @@ public class InvitationAcceptance {
 
     public void setTargetValue(String targetValue) {
         this.targetValue = targetValue;
+    }
+
+    public Map<String, String> getIdentifiers() {
+        return identifiers;
+    }
+
+    public void setIdentifiers(Map<String, String> identifiers) {
+        this.identifiers = identifiers;
     }
 
     @Override

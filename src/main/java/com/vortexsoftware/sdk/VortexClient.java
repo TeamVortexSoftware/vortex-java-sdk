@@ -66,7 +66,7 @@ public class VortexClient {
      * <pre>{@code
      * Map<String, Object> params = new HashMap<>();
      * User user = new User("user-123", "user@example.com");
-     * user.setAdminScopes(Arrays.asList("autoJoin"));
+     * user.setAdminScopes(Arrays.asList("autojoin"));
      * params.put("user", user);
      * String jwt = client.generateJwt(params);
      * }</pre>

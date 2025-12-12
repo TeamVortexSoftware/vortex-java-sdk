@@ -52,7 +52,7 @@ public class VortexExample {
         // Example 1: Simple JWT generation
         System.out.println("\n✨ Simple usage:");
         User user1 = new User("user-123", "admin@example.com");
-        user1.setAdminScopes(Arrays.asList("autoJoin"));
+        user1.setAdminScopes(Arrays.asList("autojoin"));
 
         java.util.Map<String, Object> params1 = new java.util.HashMap<>();
         params1.put("user", user1);

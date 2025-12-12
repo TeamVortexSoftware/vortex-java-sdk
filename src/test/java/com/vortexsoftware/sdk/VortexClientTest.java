@@ -54,7 +54,7 @@ public class VortexClientTest {
     void testJWTGeneration() throws VortexException {
         // Create test user
         User user = new User("user-123", "test@example.com");
-        user.setAdminScopes(Arrays.asList("autoJoin"));
+        user.setAdminScopes(Arrays.asList("autojoin"));
 
         // Build params map matching Node.js SDK pattern
         Map<String, Object> params = new HashMap<>();
@@ -283,7 +283,7 @@ public class VortexClientTest {
 
     private User createTestUser() {
         User user = new User("user-123", "test@example.com");
-        user.setAdminScopes(Arrays.asList("autoJoin"));
+        user.setAdminScopes(Arrays.asList("autojoin"));
         return user;
     }
 }

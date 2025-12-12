@@ -53,8 +53,8 @@ public class VortexController {
 
             // Build User object with adminScopes
             List<String> adminScopes = null;
-            if (user.getUserIsAutoJoinAdmin() != null && user.getUserIsAutoJoinAdmin()) {
-                adminScopes = List.of("autoJoin");
+            if (user.getUserIsAutojoinAdmin() != null && user.getUserIsAutojoinAdmin()) {
+                adminScopes = List.of("autojoin");
             }
 
             User vortexUser = new User(user.getUserId(), user.getUserEmail(), adminScopes);

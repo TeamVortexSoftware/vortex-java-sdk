@@ -39,7 +39,7 @@ VortexClient client = new VortexClient("your-api-key-here");
 
 // Generate JWT - simple usage
 User user = new User("user-123", "user@example.com");
-user.setAdminScopes(Arrays.asList("autoJoin"));
+user.setAdminScopes(Arrays.asList("autojoin"));
 String jwt = client.generateJwt(user, null);
 
 // Generate JWT with additional properties
@@ -99,7 +99,7 @@ public class VortexConfiguration {
                 return new VortexUser(
                     auth.getName(),
                     getUserEmail(auth),
-                    isAutoJoinAdmin(auth)
+                    isAutojoinAdmin(auth)
                 );
             }
 
@@ -124,16 +124,18 @@ public String generateJwt(User user, Map<String, Object> extra) throws VortexExc
 ```
 
 Generates a JWT token with the following structure:
+
 - User ID and email (required)
 - Admin scopes (optional) - full `adminScopes` array is included in JWT payload
 - Additional properties from `extra` parameter
 - Expiration (1 hour from generation)
 
 Example:
+
 ```java
 // Simple usage
 User user = new User("user-123", "user@example.com");
-user.setAdminScopes(Arrays.asList("autoJoin"));
+user.setAdminScopes(Arrays.asList("autojoin"));
 String jwt = client.generateJwt(user, null);
 
 // With additional properties
@@ -178,34 +180,40 @@ public void deleteInvitationsByGroup(String groupType, String groupId)
 ### Types
 
 #### User
+
 User data for JWT generation with id, email, and optional adminScopes.
 
 #### InvitationResult
+
 Complete invitation data with status, delivery information, and metadata.
 
 #### InvitationTarget
+
 Represents invitation targets (email, SMS, etc.).
 
 #### InvitationGroup
+
 Group membership information.
 
 #### AcceptInvitationRequest
+
 Request payload for accepting invitations.
 
 ## Route Compatibility
 
 The Java SDK provides the exact same route structure as other SDKs:
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `/jwt` | POST | Generate JWT |
-| `/invitations` | GET | Get invitations by target |
-| `/invitations/{id}` | GET/DELETE | Get/revoke specific invitation |
-| `/invitations/accept` | POST | Accept invitations |
-| `/invitations/by-group/{type}/{groupId}` | GET/DELETE | Group operations |
-| `/invitations/{id}/reinvite` | POST | Reinvite user |
+| Route                                    | Method     | Purpose                        |
+| ---------------------------------------- | ---------- | ------------------------------ |
+| `/jwt`                                   | POST       | Generate JWT                   |
+| `/invitations`                           | GET        | Get invitations by target      |
+| `/invitations/{id}`                      | GET/DELETE | Get/revoke specific invitation |
+| `/invitations/accept`                    | POST       | Accept invitations             |
+| `/invitations/by-group/{type}/{groupId}` | GET/DELETE | Group operations               |
+| `/invitations/{id}/reinvite`             | POST       | Reinvite user                  |
 
 This ensures perfect compatibility with:
+
 - React providers
 - Frontend applications
 - Cross-platform consistency
@@ -221,8 +229,8 @@ This ensures perfect compatibility with:
 ```yaml
 vortex:
   api:
-    key: your-api-key-here      # Required
-    base-url: custom-url        # Optional
+    key: your-api-key-here # Required
+    base-url: custom-url # Optional
 ```
 
 ## Error Handling
@@ -247,6 +255,7 @@ mvn test
 ```
 
 Test coverage includes:
+
 - JWT generation algorithms
 - All API methods
 - Error handling
@@ -305,8 +314,8 @@ public class MyVortexController {
 
             // Build user with admin scopes if applicable
             User user = new User(userId, userEmail);
-            if (userIsAutoJoinAdmin(request)) {
-                user.setAdminScopes(Arrays.asList("autoJoin"));
+            if (userIsAutojoinAdmin(request)) {
+                user.setAdminScopes(Arrays.asList("autojoin"));
             }
 
             String jwt = vortexClient.generateJwt(user, null);
@@ -329,7 +338,7 @@ public class VortexExample {
 
             // Create user
             User user = new User("user-123", "user@example.com");
-            user.setAdminScopes(Arrays.asList("autoJoin"));
+            user.setAdminScopes(Arrays.asList("autojoin"));
 
             // Generate JWT
             String jwt = client.generateJwt(user, null);

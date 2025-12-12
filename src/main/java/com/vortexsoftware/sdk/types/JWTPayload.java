@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * JWT payload for Vortex token generation
  *
- * Supports both new simplified format (userEmail, userIsAutoJoinAdmin) and
+ * Supports both new simplified format (userEmail, userIsAutojoinAdmin) and
  * legacy format (identifiers, groups, role) for backward compatibility.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -19,8 +19,8 @@ public class JWTPayload {
     @JsonProperty("userEmail")
     private String userEmail;
 
-    @JsonProperty("userIsAutoJoinAdmin")
-    private Boolean userIsAutoJoinAdmin;
+    @JsonProperty("userIsAutojoinAdmin")
+    private Boolean userIsAutojoinAdmin;
 
     // Legacy fields (deprecated but still supported for backward compatibility)
     @JsonProperty("identifiers")
@@ -37,10 +37,10 @@ public class JWTPayload {
     /**
      * Create a payload with new simplified format (recommended)
      */
-    public JWTPayload(String userId, String userEmail, Boolean userIsAutoJoinAdmin) {
+    public JWTPayload(String userId, String userEmail, Boolean userIsAutojoinAdmin) {
         this.userId = userId;
         this.userEmail = userEmail;
-        this.userIsAutoJoinAdmin = userIsAutoJoinAdmin;
+        this.userIsAutojoinAdmin = userIsAutojoinAdmin;
     }
 
     /**
@@ -71,12 +71,12 @@ public class JWTPayload {
         this.userEmail = userEmail;
     }
 
-    public Boolean getUserIsAutoJoinAdmin() {
-        return userIsAutoJoinAdmin;
+    public Boolean getUserIsAutojoinAdmin() {
+        return userIsAutojoinAdmin;
     }
 
-    public void setUserIsAutoJoinAdmin(Boolean userIsAutoJoinAdmin) {
-        this.userIsAutoJoinAdmin = userIsAutoJoinAdmin;
+    public void setUserIsAutojoinAdmin(Boolean userIsAutojoinAdmin) {
+        this.userIsAutojoinAdmin = userIsAutojoinAdmin;
     }
 
     public List<Identifier> getIdentifiers() {
@@ -108,7 +108,7 @@ public class JWTPayload {
         return "JWTPayload{" +
                 "userId='" + userId + '\'' +
                 ", userEmail='" + userEmail + '\'' +
-                ", userIsAutoJoinAdmin=" + userIsAutoJoinAdmin +
+                ", userIsAutojoinAdmin=" + userIsAutojoinAdmin +
                 ", identifiers=" + identifiers +
                 ", groups=" + groups +
                 ", role='" + role + '\'' +
