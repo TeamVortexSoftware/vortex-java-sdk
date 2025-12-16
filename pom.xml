@@ -211,7 +211,7 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
-                    <autoPublish>false</autoPublish>
+                    <autoPublish>true</autoPublish>
                     <deploymentName>vortex-java-sdk-${project.version}</deploymentName>
                 </configuration>
             </plugin>
