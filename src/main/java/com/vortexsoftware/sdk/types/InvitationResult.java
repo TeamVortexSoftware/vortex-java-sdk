@@ -1,6 +1,5 @@
 package com.vortexsoftware.sdk.types;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +7,6 @@ import java.util.Map;
 /**
  * Complete invitation result as returned by the Vortex API
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class InvitationResult {
     @JsonProperty("id")
     private String id;
@@ -57,6 +55,9 @@ public class InvitationResult {
 
     @JsonProperty("widgetConfigurationId")
     private String widgetConfigurationId;
+
+    @JsonProperty("deploymentId")
+    private String deploymentId;
 
     @JsonProperty("projectId")
     private String projectId;
@@ -214,6 +215,14 @@ public class InvitationResult {
 
     public void setWidgetConfigurationId(String widgetConfigurationId) {
         this.widgetConfigurationId = widgetConfigurationId;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
     }
 
     public String getProjectId() {
