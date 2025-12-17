@@ -7,7 +7,7 @@
 
     <groupId>com.vortexsoftware</groupId>
     <artifactId>vortex-java-sdk</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <name>Vortex Java SDK</name>
@@ -211,7 +211,7 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
-                    <autoPublish>false</autoPublish>
+                    <autoPublish>true</autoPublish>
                     <deploymentName>vortex-java-sdk-${project.version}</deploymentName>
                 </configuration>
             </plugin>
