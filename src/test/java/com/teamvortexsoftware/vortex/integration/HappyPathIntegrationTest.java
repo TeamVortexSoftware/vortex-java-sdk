@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import com.vortexsoftware.sdk.VortexClient;
+import com.vortexsoftware.sdk.VortexException;
+import com.vortexsoftware.sdk.types.AcceptUser;
 import com.vortexsoftware.sdk.types.InvitationResult;
 import com.vortexsoftware.sdk.types.InvitationTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -116,11 +118,20 @@ public class HappyPathIntegrationTest {
 
         // Step 3: Accept invitation
         System.out.println("Step 3: Accepting invitation...");
-        InvitationTarget target = new InvitationTarget("email", userEmail);
+        AcceptUser user = new AcceptUser(userEmail);
 
-        List<InvitationResult> results = publicClient.acceptInvitations(List.of(invitationId), target);
-        assertNotNull(results, "Failed to accept invitation");
-        assertFalse(results.isEmpty(), "No results returned from accept invitation");
+        InvitationResult result = null;
+        try {
+            result = publicClient.acceptInvitations(List.of(invitationId), user);
+        } catch (VortexException e) {
+            System.err.println("❌ Failed to accept invitation: " + e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println("Cause: " + e.getCause().getMessage());
+                e.getCause().printStackTrace();
+            }
+            throw e;
+        }
+        assertNotNull(result, "Failed to accept invitation");
         System.out.println("✓ Accepted invitation successfully");
 
         System.out.println("--- Java SDK Integration Test Complete ---\n");

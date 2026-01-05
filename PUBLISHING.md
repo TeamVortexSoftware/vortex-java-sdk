@@ -138,7 +138,7 @@ For SNAPSHOTs during development:
 ### Step 3: Build and Test
 
 ```bash
-cd packages/vortex-java-sdk
+cd sdks/vortex-java-sdk
 
 # Clean previous builds
 mvn clean
@@ -267,7 +267,7 @@ jobs:
 
       - name: Build and publish
         run: |
-          cd packages/vortex-java-sdk
+          cd sdks/vortex-java-sdk
           mvn clean deploy -P gpg
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

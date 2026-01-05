@@ -165,24 +165,50 @@ public class VortexControllerTest {
     void testAcceptInvitations_Success() throws VortexException {
         AcceptInvitationRequest request = new AcceptInvitationRequest();
         request.setInvitationIds(Arrays.asList("inv-123", "inv-456"));
-        request.setTarget(new InvitationTarget("email", "test@example.com"));
+        AcceptUser user = new AcceptUser("test@example.com");
+        request.setUser(user);
 
         InvitationResult result = new InvitationResult();
         result.setId("inv-123");
         result.setStatus("accepted");
-        List<InvitationResult> results = Arrays.asList(result);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("ACCEPT_INVITATIONS", testUser)).thenReturn(true);
-        when(mockClient.acceptInvitations(request.getInvitationIds(), request.getTarget())).thenReturn(results);
+        when(mockClient.acceptInvitations(request.getInvitationIds(), request.getUser())).thenReturn(result);
 
         ResponseEntity<?> response = controller.acceptInvitations(request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<InvitationResult> returnedResults = (List<InvitationResult>) response.getBody();
-        assertEquals(1, returnedResults.size());
-        assertEquals("inv-123", returnedResults.get(0).getId());
-        assertEquals("accepted", returnedResults.get(0).getStatus());
+        InvitationResult returnedResult = (InvitationResult) response.getBody();
+        assertEquals("inv-123", returnedResult.getId());
+        assertEquals("accepted", returnedResult.getStatus());
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void testAcceptInvitations_LegacyTarget() throws VortexException {
+        // Test that legacy target format still works (deprecated)
+        InvitationTarget target = new InvitationTarget("email", "legacy@example.com");
+
+        InvitationResult result = new InvitationResult();
+        result.setId("inv-789");
+        result.setStatus("accepted");
+
+        when(mockConfig.authenticateUser()).thenReturn(testUser);
+        when(mockConfig.authorizeOperation("ACCEPT_INVITATIONS", testUser)).thenReturn(true);
+        when(mockClient.acceptInvitations(any(), any(AcceptUser.class))).thenReturn(result);
+
+        AcceptInvitationRequest request = new AcceptInvitationRequest();
+        request.setInvitationIds(Arrays.asList("inv-789"));
+        AcceptUser user = new AcceptUser();
+        user.setEmail("legacy@example.com");
+        request.setUser(user);
+
+        ResponseEntity<?> response = controller.acceptInvitations(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        InvitationResult returnedResult = (InvitationResult) response.getBody();
+        assertEquals("inv-789", returnedResult.getId());
     }
 
     @Test

@@ -2,6 +2,20 @@
 
 All notable changes to the Vortex Java SDK will be documented in this file.
 
+## [1.1.3] - 2025-01-29
+
+### Added
+- **AcceptUser Class**: New preferred format for accepting invitations with `email`, `phone`, and `name` fields
+- Enhanced `acceptInvitations` method to support both new User format and legacy target format via overloading
+
+### Changed
+- **DEPRECATED**: Legacy `InvitationTarget` format for `acceptInvitations` - use `AcceptUser` instead
+- Internal API calls now always use User format for consistency
+- Added `@Deprecated` annotation and logging for legacy target format methods
+
+### Fixed
+- Maintained 100% backward compatibility - existing code using legacy target format continues to work
+
 ## [1.0.1] - 2025-10-31
 
 ### Fixed

@@ -1,23 +1,29 @@
 package com.vortexsoftware.sdk.types;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
  * Request payload for accepting invitations
+ * Supports both new User format (preferred) and legacy target format (deprecated)
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AcceptInvitationRequest {
     @JsonProperty("invitationIds")
     private List<String> invitationIds;
 
-    @JsonProperty("target")
-    private InvitationTarget target;
+    @JsonProperty("user")
+    private AcceptUser user;
 
     public AcceptInvitationRequest() {}
 
-    public AcceptInvitationRequest(List<String> invitationIds, InvitationTarget target) {
+    /**
+     * Create request with new User format (preferred)
+     */
+    public AcceptInvitationRequest(List<String> invitationIds, AcceptUser user) {
         this.invitationIds = invitationIds;
-        this.target = target;
+        this.user = user;
     }
 
     public List<String> getInvitationIds() {
@@ -28,19 +34,19 @@ public class AcceptInvitationRequest {
         this.invitationIds = invitationIds;
     }
 
-    public InvitationTarget getTarget() {
-        return target;
+    public AcceptUser getUser() {
+        return user;
     }
 
-    public void setTarget(InvitationTarget target) {
-        this.target = target;
+    public void setUser(AcceptUser user) {
+        this.user = user;
     }
 
     @Override
     public String toString() {
         return "AcceptInvitationRequest{" +
                 "invitationIds=" + invitationIds +
-                ", target=" + target +
+                ", user=" + user +
                 '}';
     }
 }

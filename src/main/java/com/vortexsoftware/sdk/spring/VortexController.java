@@ -180,11 +180,11 @@ public class VortexController {
                         .body(Map.of("error", "Not authorized to accept invitations"));
             }
 
-            List<InvitationResult> results = vortexClient.acceptInvitations(
+            InvitationResult result = vortexClient.acceptInvitations(
                     request.getInvitationIds(),
-                    request.getTarget()
+                    request.getUser()
             );
-            return ResponseEntity.ok(results);
+            return ResponseEntity.ok(result);
 
         } catch (VortexException e) {
             logger.error("Failed to accept invitations", e);

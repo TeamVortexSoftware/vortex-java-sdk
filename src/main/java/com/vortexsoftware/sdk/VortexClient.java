@@ -252,12 +252,132 @@ public class VortexClient {
     }
 
     /**
-     * Accept multiple invitations for a target
+     * Accept multiple invitations using the new User format (preferred)
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * AcceptUser user = new AcceptUser();
+     * user.setEmail("user@example.com");
+     * user.setName("John Doe");
+     * List<InvitationResult> results = client.acceptInvitations(invitationIds, user);
+     * }</pre>
+     *
+     * @param invitationIds List of invitation IDs to accept
+     * @param user User object with email or phone (and optional name)
+     * @return List of accepted invitation results
+     * @throws VortexException if the API request fails
      */
-    public List<InvitationResult> acceptInvitations(List<String> invitationIds, InvitationTarget target) throws VortexException {
-        AcceptInvitationRequest request = new AcceptInvitationRequest(invitationIds, target);
+    public InvitationResult acceptInvitations(List<String> invitationIds, AcceptUser user) throws VortexException {
+        // Validate that either email or phone is provided
+        if ((user.getEmail() == null || user.getEmail().isEmpty()) &&
+            (user.getPhone() == null || user.getPhone().isEmpty())) {
+            throw new VortexException("User must have either email or phone");
+        }
+
+        AcceptInvitationRequest request = new AcceptInvitationRequest(invitationIds, user);
         InvitationResponse response = apiRequest("POST", "/api/v1/invitations/accept", request, null, new TypeReference<InvitationResponse>() {});
-        return response != null ? response.getInvitations() : new ArrayList<>();
+
+        // Return the first invitation from the response
+        if (response.getInvitations() != null && !response.getInvitations().isEmpty()) {
+            return response.getInvitations().get(0);
+        }
+        throw new VortexException("No invitations returned from accept endpoint");
+    }
+
+    /**
+     * Accept multiple invitations using legacy target format (deprecated)
+     *
+     * @deprecated Use {@link #acceptInvitations(List, AcceptUser)} instead.
+     *             This method is maintained for backward compatibility but will be removed in a future version.
+     *             Use the new User format which supports email, phone, and name.
+     *
+     * <p>Example migration:</p>
+     * <pre>{@code
+     * // Old way (deprecated):
+     * InvitationTarget target = new InvitationTarget("email", "user@example.com");
+     * List<InvitationResult> results = client.acceptInvitations(invitationIds, target);
+     *
+     * // New way (preferred):
+     * AcceptUser user = new AcceptUser("user@example.com");
+     * InvitationResult result = client.acceptInvitations(invitationIds, user);
+     * }</pre>
+     *
+     * @param invitationIds List of invitation IDs to accept
+     * @param target Legacy target object with type and value
+     * @return Accepted invitation result
+     * @throws VortexException if the API request fails
+     */
+    @Deprecated
+    public InvitationResult acceptInvitations(List<String> invitationIds, InvitationTarget target) throws VortexException {
+        logger.warn("[Vortex SDK] DEPRECATED: Passing an InvitationTarget is deprecated. Use the AcceptUser format instead: acceptInvitations(invitationIds, new AcceptUser(email))");
+
+        // Convert target to User format
+        AcceptUser user = new AcceptUser();
+        if ("email".equals(target.getType())) {
+            user.setEmail(target.getValue());
+        } else if ("sms".equals(target.getType()) || "phoneNumber".equals(target.getType())) {
+            user.setPhone(target.getValue());
+        } else {
+            // For other types (like 'username'), try to use as email
+            user.setEmail(target.getValue());
+        }
+
+        // Call the new method
+        return acceptInvitations(invitationIds, user);
+    }
+
+    /**
+     * Accept multiple invitations for multiple targets (deprecated)
+     *
+     * @deprecated Use {@link #acceptInvitations(List, AcceptUser)} instead and call once per user.
+     *             This method calls the API once per target and is maintained only for backward compatibility.
+     *
+     * <p>Example migration:</p>
+     * <pre>{@code
+     * // Old way (deprecated):
+     * List<InvitationTarget> targets = Arrays.asList(
+     *     new InvitationTarget("email", "user1@example.com"),
+     *     new InvitationTarget("email", "user2@example.com")
+     * );
+     * InvitationResult result = client.acceptInvitations(invitationIds, targets);
+     *
+     * // New way (preferred) - call once per user:
+     * for (InvitationTarget target : targets) {
+     *     AcceptUser user = new AcceptUser(target.getValue());
+     *     InvitationResult result = client.acceptInvitations(invitationIds, user);
+     * }
+     * }</pre>
+     *
+     * @param invitationIds List of invitation IDs to accept
+     * @param targets List of legacy target objects
+     * @return Last accepted invitation result
+     * @throws VortexException if the API request fails
+     */
+    @Deprecated
+    public InvitationResult acceptInvitations(List<String> invitationIds, List<InvitationTarget> targets) throws VortexException {
+        logger.warn("[Vortex SDK] DEPRECATED: Passing a list of InvitationTarget is deprecated. Use the AcceptUser format and call once per user instead.");
+
+        if (targets == null || targets.isEmpty()) {
+            throw new VortexException("No targets provided");
+        }
+
+        InvitationResult lastResult = null;
+        VortexException lastException = null;
+
+        // Call the endpoint once per target
+        for (InvitationTarget target : targets) {
+            try {
+                lastResult = acceptInvitations(invitationIds, target);
+            } catch (VortexException e) {
+                lastException = e;
+            }
+        }
+
+        if (lastException != null) {
+            throw lastException;
+        }
+
+        return lastResult;
     }
 
     /**

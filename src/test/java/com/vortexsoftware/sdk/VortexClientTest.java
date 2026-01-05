@@ -183,23 +183,44 @@ public class VortexClientTest {
     @Test
     void testAcceptInvitations() throws VortexException {
         List<String> invitationIds = Arrays.asList("inv-123", "inv-456");
-        InvitationTarget target = new InvitationTarget("email", "test@example.com");
+        AcceptUser user = new AcceptUser("test@example.com");
 
-        // Mock API response - returns { invitations: [...] }
+        // Mock API response - returns invitations array wrapper
         stubFor(post(urlPathEqualTo("/api/v1/invitations/accept"))
                 .withRequestBody(matchingJsonPath("$.invitationIds"))
-                .withRequestBody(matchingJsonPath("$.target"))
+                .withRequestBody(matchingJsonPath("$.user"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody("{\"invitations\": [{\"id\": \"inv-123\", \"status\": \"accepted\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": []}]}")));
+                        .withBody("{\"invitations\": [{\"id\": \"inv-123\", \"status\": \"accepted\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": [], \"expired\": false}]}")));
 
-        List<InvitationResult> results = client.acceptInvitations(invitationIds, target);
+        InvitationResult result = client.acceptInvitations(invitationIds, user);
 
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("inv-123", results.get(0).getId());
-        assertEquals("accepted", results.get(0).getStatus());
+        assertNotNull(result);
+        assertEquals("inv-123", result.getId());
+        assertEquals("accepted", result.getStatus());
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void testAcceptInvitations_LegacyTarget() throws VortexException {
+        List<String> invitationIds = Arrays.asList("inv-789");
+        InvitationTarget target = new InvitationTarget("email", "legacy@example.com");
+
+        // Mock API response - returns invitations array wrapper
+        stubFor(post(urlPathEqualTo("/api/v1/invitations/accept"))
+                .withRequestBody(matchingJsonPath("$.invitationIds"))
+                .withRequestBody(matchingJsonPath("$.user"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"invitations\": [{\"id\": \"inv-789\", \"status\": \"accepted\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": [], \"expired\": false}]}")));
+
+        InvitationResult result = client.acceptInvitations(invitationIds, target);
+
+        assertNotNull(result);
+        assertEquals("inv-789", result.getId());
+        assertEquals("accepted", result.getStatus());
     }
 
     @Test
