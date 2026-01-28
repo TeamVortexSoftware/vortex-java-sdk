@@ -66,7 +66,9 @@ public class VortexClient {
      * <pre>{@code
      * Map<String, Object> params = new HashMap<>();
      * User user = new User("user-123", "user@example.com");
-     * user.setAdminScopes(Arrays.asList("autojoin"));
+     * user.setName("Jane Doe");                                      // Optional: user's display name
+     * user.setAvatarUrl("https://example.com/avatars/jane.jpg");    // Optional: user's avatar URL
+     * user.setAdminScopes(Arrays.asList("autojoin"));               // Optional: grants admin privileges
      * params.put("user", user);
      * String jwt = client.generateJwt(params);
      * }</pre>
@@ -136,6 +138,16 @@ public class VortexClient {
             jwtPayload.put("userId", user.getId());
             jwtPayload.put("userEmail", user.getEmail());
             jwtPayload.put("expires", expires);
+
+            // Add name if present
+            if (user.getName() != null) {
+                jwtPayload.put("name", user.getName());
+            }
+
+            // Add avatarUrl if present
+            if (user.getAvatarUrl() != null) {
+                jwtPayload.put("avatarUrl", user.getAvatarUrl());
+            }
 
             // Add adminScopes if present
             if (user.getAdminScopes() != null) {
@@ -315,7 +327,7 @@ public class VortexClient {
         AcceptUser user = new AcceptUser();
         if ("email".equals(target.getType())) {
             user.setEmail(target.getValue());
-        } else if ("sms".equals(target.getType()) || "phoneNumber".equals(target.getType())) {
+        } else if ("phone".equals(target.getType()) || "phoneNumber".equals(target.getType())) {
             user.setPhone(target.getValue());
         } else {
             // For other types (like 'username'), try to use as email
@@ -400,6 +412,67 @@ public class VortexClient {
      */
     public InvitationResult reinvite(String invitationId) throws VortexException {
         return apiRequest("POST", "/api/v1/invitations/" + invitationId + "/reinvite", null, null, new TypeReference<InvitationResult>() {});
+    }
+
+    /**
+     * Create an invitation from your backend
+     *
+     * <p>This method allows you to create invitations programmatically using your API key,
+     * without requiring a user JWT token. Useful for server-side invitation creation,
+     * such as "People You May Know" flows or admin-initiated invitations.</p>
+     *
+     * <p>Target types:</p>
+     * <ul>
+     *   <li><code>email</code>: Send an email invitation</li>
+     *   <li><code>sms</code>: Create an SMS invitation (short link returned for you to send)</li>
+     *   <li><code>internal</code>: Create an internal invitation for PYMK flows (no email sent)</li>
+     * </ul>
+     *
+     * <p>Example - Email invitation:</p>
+     * <pre>{@code
+     * CreateInvitationRequest request = new CreateInvitationRequest(
+     *     "widget-config-123",
+     *     CreateInvitationTarget.email("invitee@example.com"),
+     *     new Inviter("user-456", "inviter@example.com", "John Doe", null)
+     * );
+     * request.setGroups(Arrays.asList(
+     *     new CreateInvitationGroup("team", "team-789", "Engineering")
+     * ));
+     * CreateInvitationResponse response = client.createInvitation(request);
+     * System.out.println("Invitation created: " + response.getId());
+     * System.out.println("Short link: " + response.getShortLink());
+     * }</pre>
+     *
+     * <p>Example - Internal invitation (PYMK flow):</p>
+     * <pre>{@code
+     * CreateInvitationRequest request = new CreateInvitationRequest(
+     *     "widget-config-123",
+     *     CreateInvitationTarget.internal("internal-user-abc"),
+     *     new Inviter("user-456")
+     * );
+     * request.setSource("pymk");
+     * CreateInvitationResponse response = client.createInvitation(request);
+     * }</pre>
+     *
+     * @param request The create invitation request
+     * @return CreateInvitationResponse with id, shortLink, status, and createdAt
+     * @throws VortexException if the API request fails
+     */
+    public CreateInvitationResponse createInvitation(CreateInvitationRequest request) throws VortexException {
+        if (request == null) {
+            throw new VortexException("Request cannot be null");
+        }
+        if (request.getWidgetConfigurationId() == null || request.getWidgetConfigurationId().isEmpty()) {
+            throw new VortexException("widgetConfigurationId is required");
+        }
+        if (request.getTarget() == null || request.getTarget().getValue() == null || request.getTarget().getValue().isEmpty()) {
+            throw new VortexException("target with value is required");
+        }
+        if (request.getInviter() == null || request.getInviter().getUserId() == null || request.getInviter().getUserId().isEmpty()) {
+            throw new VortexException("inviter with userId is required");
+        }
+
+        return apiRequest("POST", "/api/v1/invitations", request, null, new TypeReference<CreateInvitationResponse>() {});
     }
 
     /**

@@ -2,6 +2,18 @@
 
 All notable changes to the Vortex Java SDK will be documented in this file.
 
+## [1.2.0] - 2026-01-23
+
+### Added
+- **Internal Invitations**: New `'internal'` delivery type for customer-managed invitations
+  - Support for `deliveryTypes: ["internal"]`
+  - No email/SMS communication triggered by Vortex
+  - Target value can be any customer-defined identifier
+  - Useful for in-app invitation flows managed by customer's application
+
+### Changed
+- Updated `deliveryTypes` field documentation to include `'internal'` as a valid value
+
 ## [1.1.3] - 2025-01-29
 
 ### Added

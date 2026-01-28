@@ -32,6 +32,9 @@ public class InvitationResult {
     @JsonProperty("deliveryCount")
     private int deliveryCount;
 
+    /**
+     * Valid values: "email", "phone", "share", "internal"
+     */
     @JsonProperty("deliveryTypes")
     private List<String> deliveryTypes;
 
@@ -85,6 +88,15 @@ public class InvitationResult {
 
     @JsonProperty("passThrough")
     private String passThrough;
+
+    @JsonProperty("source")
+    private String source;
+
+    @JsonProperty("creatorName")
+    private String creatorName;
+
+    @JsonProperty("creatorAvatarUrl")
+    private String creatorAvatarUrl;
 
     public InvitationResult() {}
 
@@ -295,6 +307,30 @@ public class InvitationResult {
 
     public void setPassThrough(String passThrough) {
         this.passThrough = passThrough;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public String getCreatorAvatarUrl() {
+        return creatorAvatarUrl;
+    }
+
+    public void setCreatorAvatarUrl(String creatorAvatarUrl) {
+        this.creatorAvatarUrl = creatorAvatarUrl;
     }
 
     @Override

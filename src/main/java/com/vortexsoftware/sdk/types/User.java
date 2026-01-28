@@ -12,11 +12,15 @@ import java.util.List;
  * - email: User's email address
  *
  * Optional fields:
+ * - name: User's display name (max 200 characters)
+ * - avatarUrl: User's avatar URL (must be HTTPS, max 2000 characters)
  * - adminScopes: List of admin scopes (e.g., ["autojoin"])
  *
  * Example:
  * <pre>{@code
  * User user = new User("user-123", "user@example.com");
+ * user.setName("Jane Doe");
+ * user.setAvatarUrl("https://example.com/avatars/jane.jpg");
  * user.setAdminScopes(Arrays.asList("autojoin"));
  * }</pre>
  */
@@ -27,6 +31,12 @@ public class User {
 
     @JsonProperty("email")
     private String email;
+
+    @JsonProperty("name")
+    private String name;
+
+    @JsonProperty("avatarUrl")
+    private String avatarUrl;
 
     @JsonProperty("adminScopes")
     private List<String> adminScopes;
@@ -84,11 +94,29 @@ public class User {
         this.adminScopes = adminScopes;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "id='" + id + '\'' +
                 ", email='" + email + '\'' +
+                ", name='" + name + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", adminScopes=" + adminScopes +
                 '}';
     }
