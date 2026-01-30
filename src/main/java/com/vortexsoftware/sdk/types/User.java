@@ -32,11 +32,11 @@ public class User {
     @JsonProperty("email")
     private String email;
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("userName")
+    private String userName;
 
-    @JsonProperty("avatarUrl")
-    private String avatarUrl;
+    @JsonProperty("userAvatarUrl")
+    private String userAvatarUrl;
 
     @JsonProperty("adminScopes")
     private List<String> adminScopes;
@@ -94,20 +94,20 @@ public class User {
         this.adminScopes = adminScopes;
     }
 
-    public String getName() {
-        return name;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
+    public String getUserAvatarUrl() {
+        return userAvatarUrl;
     }
 
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
+    public void setUserAvatarUrl(String userAvatarUrl) {
+        this.userAvatarUrl = userAvatarUrl;
     }
 
     @Override
@@ -115,8 +115,8 @@ public class User {
         return "User{" +
                 "id='" + id + '\'' +
                 ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", avatarUrl='" + avatarUrl + '\'' +
+                ", userName='" + userName + '\'' +
+                ", userAvatarUrl='" + userAvatarUrl + '\'' +
                 ", adminScopes=" + adminScopes +
                 '}';
     }

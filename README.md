@@ -44,23 +44,21 @@ Add to your `pom.xml`:
 import com.vortexsoftware.sdk.VortexClient;
 import com.vortexsoftware.sdk.types.*;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 // Create client
 VortexClient client = new VortexClient("your-api-key-here");
 
-// Generate JWT - simple usage
-User user = new User("user-123", "user@example.com");
-user.setAdminScopes(Arrays.asList("autojoin"));
-String jwt = client.generateJwt(user, null);
+// Generate JWT with user profile
+User user = new User.Builder()
+    .id("user-123")
+    .email("user@example.com")
+    .userName("Jane Doe")                                    // Optional: user's display name
+    .userAvatarUrl("https://example.com/avatars/jane.jpg")  // Optional: user's avatar URL
+    .adminScopes(Arrays.asList("autojoin"))             // Optional: grants autojoin admin privileges
+    .build();
 
-// Generate JWT with additional properties
-User user2 = new User("user-456", "admin@example.com");
-Map<String, Object> extra = new HashMap<>();
-extra.put("role", "admin");
-extra.put("department", "Engineering");
-String jwt2 = client.generateJwt(user2, extra);
+String jwt = client.generateJwt(user, null);
 
 // Get invitations by target
 List<InvitationResult> invitations = client.getInvitationsByTarget("email", "user@example.com");
@@ -139,6 +137,7 @@ public String generateJwt(User user, Map<String, Object> extra) throws VortexExc
 Generates a JWT token with the following structure:
 
 - User ID and email (required)
+- Name and avatar URL (optional) - user profile information
 - Admin scopes (optional) - full `adminScopes` array is included in JWT payload
 - Additional properties from `extra` parameter
 - Expiration (1 hour from generation)
@@ -146,17 +145,16 @@ Generates a JWT token with the following structure:
 Example:
 
 ```java
-// Simple usage
-User user = new User("user-123", "user@example.com");
-user.setAdminScopes(Arrays.asList("autojoin"));
-String jwt = client.generateJwt(user, null);
+// Generate JWT with user profile
+User user = new User.Builder()
+    .id("user-123")
+    .email("user@example.com")
+    .userName("Jane Doe")                                    // Optional: max 200 chars
+    .userAvatarUrl("https://example.com/avatars/jane.jpg")  // Optional: HTTPS URL, max 2000 chars
+    .adminScopes(Arrays.asList("autojoin"))             // Optional: grants admin privileges
+    .build();
 
-// With additional properties
-User user2 = new User("user-456", "user@example.com");
-Map<String, Object> extra = new HashMap<>();
-extra.put("role", "admin");
-extra.put("department", "Engineering");
-String jwt2 = client.generateJwt(user2, extra);
+String jwt = client.generateJwt(user, null);
 ```
 
 Uses the same algorithm as other Vortex SDKs for perfect cross-platform compatibility.

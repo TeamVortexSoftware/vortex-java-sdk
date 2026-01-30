@@ -140,13 +140,13 @@ public class VortexClient {
             jwtPayload.put("expires", expires);
 
             // Add name if present
-            if (user.getName() != null) {
-                jwtPayload.put("name", user.getName());
+            if (user.getUserName() != null) {
+                jwtPayload.put("userName", user.getUserName());
             }
 
-            // Add avatarUrl if present
-            if (user.getAvatarUrl() != null) {
-                jwtPayload.put("avatarUrl", user.getAvatarUrl());
+            // Add userAvatarUrl if present
+            if (user.getUserAvatarUrl() != null) {
+                jwtPayload.put("userAvatarUrl", user.getUserAvatarUrl());
             }
 
             // Add adminScopes if present

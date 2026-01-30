@@ -15,11 +15,11 @@ public class Inviter {
     @JsonProperty("userEmail")
     private String userEmail;
 
-    @JsonProperty("name")
-    private String name;
+    @JsonProperty("userName")
+    private String userName;
 
-    @JsonProperty("avatarUrl")
-    private String avatarUrl;
+    @JsonProperty("userAvatarUrl")
+    private String userAvatarUrl;
 
     public Inviter() {
     }
@@ -34,14 +34,14 @@ public class Inviter {
     /**
      * @param userId Required: Your internal user ID for the inviter
      * @param userEmail Optional: Email of the inviter
-     * @param name Optional: Display name of the inviter
-     * @param avatarUrl Optional: Avatar URL of the inviter
+     * @param userName Optional: Display name of the inviter
+     * @param userAvatarUrl Optional: Avatar URL of the inviter
      */
-    public Inviter(String userId, String userEmail, String name, String avatarUrl) {
+    public Inviter(String userId, String userEmail, String userName, String userAvatarUrl) {
         this.userId = userId;
         this.userEmail = userEmail;
-        this.name = name;
-        this.avatarUrl = avatarUrl;
+        this.userName = userName;
+        this.userAvatarUrl = userAvatarUrl;
     }
 
     public String getUserId() {
@@ -60,19 +60,19 @@ public class Inviter {
         this.userEmail = userEmail;
     }
 
-    public String getName() {
-        return name;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
+    public String getUserAvatarUrl() {
+        return userAvatarUrl;
     }
 
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
+    public void setUserAvatarUrl(String userAvatarUrl) {
+        this.userAvatarUrl = userAvatarUrl;
     }
 }
