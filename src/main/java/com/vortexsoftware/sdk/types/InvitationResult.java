@@ -32,23 +32,20 @@ public class InvitationResult {
     @JsonProperty("deliveryCount")
     private int deliveryCount;
 
-    /**
-     * Valid values: "email", "phone", "share", "internal"
-     */
     @JsonProperty("deliveryTypes")
-    private List<String> deliveryTypes;
+    private List<DeliveryType> deliveryTypes;
 
     @JsonProperty("foreignCreatorId")
     private String foreignCreatorId;
 
     @JsonProperty("invitationType")
-    private String invitationType;
+    private InvitationType invitationType;
 
     @JsonProperty("modifiedAt")
     private String modifiedAt;
 
     @JsonProperty("status")
-    private String status;
+    private InvitationStatus status;
 
     @JsonProperty("target")
     private List<InvitationTarget> target;
@@ -165,11 +162,11 @@ public class InvitationResult {
         this.deliveryCount = deliveryCount;
     }
 
-    public List<String> getDeliveryTypes() {
+    public List<DeliveryType> getDeliveryTypes() {
         return deliveryTypes;
     }
 
-    public void setDeliveryTypes(List<String> deliveryTypes) {
+    public void setDeliveryTypes(List<DeliveryType> deliveryTypes) {
         this.deliveryTypes = deliveryTypes;
     }
 
@@ -181,11 +178,11 @@ public class InvitationResult {
         this.foreignCreatorId = foreignCreatorId;
     }
 
-    public String getInvitationType() {
+    public InvitationType getInvitationType() {
         return invitationType;
     }
 
-    public void setInvitationType(String invitationType) {
+    public void setInvitationType(InvitationType invitationType) {
         this.invitationType = invitationType;
     }
 
@@ -197,11 +194,11 @@ public class InvitationResult {
         this.modifiedAt = modifiedAt;
     }
 
-    public String getStatus() {
+    public InvitationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(InvitationStatus status) {
         this.status = status;
     }
 

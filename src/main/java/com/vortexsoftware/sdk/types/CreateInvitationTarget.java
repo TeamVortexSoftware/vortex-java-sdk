@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class CreateInvitationTarget {
 
     @JsonProperty("type")
-    private String type;
+    private CreateInvitationTargetType type;
 
     @JsonProperty("value")
     private String value;
@@ -18,32 +18,33 @@ public class CreateInvitationTarget {
     public CreateInvitationTarget() {
     }
 
-    /**
-     * @param type Target type: "email", "phone", or "internal"
-     * @param value Target value: email address, phone number, or internal user ID
-     */
-    public CreateInvitationTarget(String type, String value) {
+    public CreateInvitationTarget(CreateInvitationTargetType type, String value) {
         this.type = type;
         this.value = value;
     }
 
     public static CreateInvitationTarget email(String email) {
-        return new CreateInvitationTarget("email", email);
+        return new CreateInvitationTarget(CreateInvitationTargetType.EMAIL, email);
     }
 
+    public static CreateInvitationTarget phone(String phone) {
+        return new CreateInvitationTarget(CreateInvitationTargetType.PHONE, phone);
+    }
+
+    /** Alias for phone (backward compatibility) */
     public static CreateInvitationTarget sms(String phone) {
-        return new CreateInvitationTarget("phone", phone);
+        return phone(phone);
     }
 
     public static CreateInvitationTarget internal(String internalId) {
-        return new CreateInvitationTarget("internal", internalId);
+        return new CreateInvitationTarget(CreateInvitationTargetType.INTERNAL, internalId);
     }
 
-    public String getType() {
+    public CreateInvitationTargetType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(CreateInvitationTargetType type) {
         this.type = type;
     }
 

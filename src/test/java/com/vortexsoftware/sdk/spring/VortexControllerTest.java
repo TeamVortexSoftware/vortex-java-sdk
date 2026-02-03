@@ -101,7 +101,7 @@ public class VortexControllerTest {
     void testGetInvitationsByTarget_Success() throws VortexException {
         InvitationResult invitation = new InvitationResult();
         invitation.setId("inv-123");
-        invitation.setStatus("delivered");
+        invitation.setStatus(InvitationStatus.DELIVERED);
         List<InvitationResult> invitations = Arrays.asList(invitation);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
@@ -121,7 +121,7 @@ public class VortexControllerTest {
     void testGetInvitation_Success() throws VortexException {
         InvitationResult invitation = new InvitationResult();
         invitation.setId("inv-123");
-        invitation.setStatus("delivered");
+        invitation.setStatus(InvitationStatus.DELIVERED);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("GET_INVITATION", testUser)).thenReturn(true);
@@ -132,7 +132,7 @@ public class VortexControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         InvitationResult returnedInvitation = (InvitationResult) response.getBody();
         assertEquals("inv-123", returnedInvitation.getId());
-        assertEquals("delivered", returnedInvitation.getStatus());
+        assertEquals(InvitationStatus.DELIVERED, returnedInvitation.getStatus());
     }
 
     @Test
@@ -170,7 +170,7 @@ public class VortexControllerTest {
 
         InvitationResult result = new InvitationResult();
         result.setId("inv-123");
-        result.setStatus("accepted");
+        result.setStatus(InvitationStatus.ACCEPTED);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("ACCEPT_INVITATIONS", testUser)).thenReturn(true);
@@ -181,18 +181,18 @@ public class VortexControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         InvitationResult returnedResult = (InvitationResult) response.getBody();
         assertEquals("inv-123", returnedResult.getId());
-        assertEquals("accepted", returnedResult.getStatus());
+        assertEquals(InvitationStatus.ACCEPTED, returnedResult.getStatus());
     }
 
     @Test
     @SuppressWarnings("deprecation")
     void testAcceptInvitations_LegacyTarget() throws VortexException {
         // Test that legacy target format still works (deprecated)
-        InvitationTarget target = new InvitationTarget("email", "legacy@example.com");
+        InvitationTarget target = new InvitationTarget(InvitationTargetType.EMAIL, "legacy@example.com");
 
         InvitationResult result = new InvitationResult();
         result.setId("inv-789");
-        result.setStatus("accepted");
+        result.setStatus(InvitationStatus.ACCEPTED);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("ACCEPT_INVITATIONS", testUser)).thenReturn(true);
@@ -246,7 +246,7 @@ public class VortexControllerTest {
     void testReinvite_Success() throws VortexException {
         InvitationResult result = new InvitationResult();
         result.setId("inv-123");
-        result.setStatus("queued");
+        result.setStatus(InvitationStatus.QUEUED);
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("REINVITE", testUser)).thenReturn(true);
@@ -257,6 +257,6 @@ public class VortexControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         InvitationResult returnedResult = (InvitationResult) response.getBody();
         assertEquals("inv-123", returnedResult.getId());
-        assertEquals("queued", returnedResult.getStatus());
+        assertEquals(InvitationStatus.QUEUED, returnedResult.getStatus());
     }
 }

@@ -3,27 +3,35 @@ package com.vortexsoftware.sdk.types;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents the target of an invitation (email, SMS, etc.)
+ * Represents the target of an invitation (email, phone, share, internal)
  */
 public class InvitationTarget {
     @JsonProperty("type")
-    private String type;
+    private InvitationTargetType type;
 
     @JsonProperty("value")
     private String value;
 
     public InvitationTarget() {}
 
-    public InvitationTarget(String type, String value) {
+    public InvitationTarget(InvitationTargetType type, String value) {
         this.type = type;
         this.value = value;
     }
 
-    public String getType() {
+    public static InvitationTarget email(String value) {
+        return new InvitationTarget(InvitationTargetType.EMAIL, value);
+    }
+
+    public static InvitationTarget phone(String value) {
+        return new InvitationTarget(InvitationTargetType.PHONE, value);
+    }
+
+    public InvitationTargetType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(InvitationTargetType type) {
         this.type = type;
     }
 
@@ -38,7 +46,7 @@ public class InvitationTarget {
     @Override
     public String toString() {
         return "InvitationTarget{" +
-                "type='" + type + '\'' +
+                "type=" + type +
                 ", value='" + value + '\'' +
                 '}';
     }

@@ -50,6 +50,9 @@ public class CreateInvitationRequest {
     @JsonProperty("metadata")
     private Map<String, Object> metadata;
 
+    @JsonProperty("unfurlConfig")
+    private UnfurlConfig unfurlConfig;
+
     public CreateInvitationRequest() {
     }
 
@@ -115,5 +118,13 @@ public class CreateInvitationRequest {
 
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata;
+    }
+
+    public UnfurlConfig getUnfurlConfig() {
+        return unfurlConfig;
+    }
+
+    public void setUnfurlConfig(UnfurlConfig unfurlConfig) {
+        this.unfurlConfig = unfurlConfig;
     }
 }

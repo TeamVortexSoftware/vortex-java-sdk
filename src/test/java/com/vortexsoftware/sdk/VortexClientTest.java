@@ -146,7 +146,7 @@ public class VortexClientTest {
         assertNotNull(results);
         assertEquals(1, results.size());
         assertEquals("inv-123", results.get(0).getId());
-        assertEquals("delivered", results.get(0).getStatus());
+        assertEquals(InvitationStatus.DELIVERED, results.get(0).getStatus());
     }
 
     @Test
@@ -164,7 +164,7 @@ public class VortexClientTest {
 
         assertNotNull(result);
         assertEquals("inv-123", result.getId());
-        assertEquals("delivered", result.getStatus());
+        assertEquals(InvitationStatus.DELIVERED, result.getStatus());
     }
 
     @Test
@@ -198,14 +198,14 @@ public class VortexClientTest {
 
         assertNotNull(result);
         assertEquals("inv-123", result.getId());
-        assertEquals("accepted", result.getStatus());
+        assertEquals(InvitationStatus.ACCEPTED, result.getStatus());
     }
 
     @Test
     @SuppressWarnings("deprecation")
     void testAcceptInvitations_LegacyTarget() throws VortexException {
         List<String> invitationIds = Arrays.asList("inv-789");
-        InvitationTarget target = new InvitationTarget("email", "legacy@example.com");
+        InvitationTarget target = new InvitationTarget(InvitationTargetType.EMAIL, "legacy@example.com");
 
         // Mock API response - returns invitations array wrapper
         stubFor(post(urlPathEqualTo("/api/v1/invitations/accept"))
@@ -220,7 +220,7 @@ public class VortexClientTest {
 
         assertNotNull(result);
         assertEquals("inv-789", result.getId());
-        assertEquals("accepted", result.getStatus());
+        assertEquals(InvitationStatus.ACCEPTED, result.getStatus());
     }
 
     @Test
@@ -271,7 +271,7 @@ public class VortexClientTest {
 
         assertNotNull(result);
         assertEquals("inv-123", result.getId());
-        assertEquals("queued", result.getStatus());
+        assertEquals(InvitationStatus.QUEUED, result.getStatus());
         assertEquals(2, result.getDeliveryCount());
     }
 
