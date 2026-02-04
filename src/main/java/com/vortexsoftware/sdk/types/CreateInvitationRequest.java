@@ -44,6 +44,10 @@ public class CreateInvitationRequest {
     @JsonProperty("source")
     private String source;
 
+    /** Customer-defined subtype for analytics segmentation (e.g., "pymk", "find-friends") */
+    @JsonProperty("subtype")
+    private String subtype;
+
     @JsonProperty("templateVariables")
     private Map<String, String> templateVariables;
 
@@ -102,6 +106,14 @@ public class CreateInvitationRequest {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 
     public Map<String, String> getTemplateVariables() {

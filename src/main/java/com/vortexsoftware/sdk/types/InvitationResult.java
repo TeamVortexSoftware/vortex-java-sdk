@@ -89,6 +89,10 @@ public class InvitationResult {
     @JsonProperty("source")
     private String source;
 
+    /** Customer-defined subtype for analytics segmentation (e.g., "pymk", "find-friends") */
+    @JsonProperty("subtype")
+    private String subtype;
+
     @JsonProperty("creatorName")
     private String creatorName;
 
@@ -312,6 +316,14 @@ public class InvitationResult {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getSubtype() {
+        return subtype;
+    }
+
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
     }
 
     public String getCreatorName() {
