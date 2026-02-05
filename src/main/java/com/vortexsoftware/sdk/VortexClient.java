@@ -476,6 +476,69 @@ public class VortexClient {
     }
 
     /**
+     * Get autojoin domains configured for a specific scope
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * AutojoinDomainsResponse response = client.getAutojoinDomains("organization", "acme-org");
+     * for (AutojoinDomain domain : response.getAutojoinDomains()) {
+     *     System.out.println("Domain: " + domain.getDomain());
+     * }
+     * }</pre>
+     *
+     * @param scopeType The type of scope (e.g., "organization", "team", "project")
+     * @param scope The scope identifier (customer's group ID)
+     * @return AutojoinDomainsResponse with autojoin domains and associated invitation
+     * @throws VortexException if the API request fails
+     */
+    public AutojoinDomainsResponse getAutojoinDomains(String scopeType, String scope) throws VortexException {
+        String encodedScopeType = java.net.URLEncoder.encode(scopeType, StandardCharsets.UTF_8);
+        String encodedScope = java.net.URLEncoder.encode(scope, StandardCharsets.UTF_8);
+        String path = "/api/v1/invitations/by-scope/" + encodedScopeType + "/" + encodedScope + "/autojoin";
+        return apiRequest("GET", path, null, null, new TypeReference<AutojoinDomainsResponse>() {});
+    }
+
+    /**
+     * Configure autojoin domains for a specific scope
+     *
+     * <p>This endpoint syncs autojoin domains - it will add new domains, remove domains
+     * not in the provided list, and deactivate the autojoin invitation if all domains
+     * are removed (empty array).</p>
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * ConfigureAutojoinRequest request = new ConfigureAutojoinRequest(
+     *     "acme-org",
+     *     "organization",
+     *     Arrays.asList("acme.com", "acme.org"),
+     *     "widget-123"
+     * );
+     * request.setScopeName("Acme Corporation");
+     * AutojoinDomainsResponse response = client.configureAutojoin(request);
+     * }</pre>
+     *
+     * @param request The configure autojoin request
+     * @return AutojoinDomainsResponse with updated autojoin domains and associated invitation
+     * @throws VortexException if the API request fails
+     */
+    public AutojoinDomainsResponse configureAutojoin(ConfigureAutojoinRequest request) throws VortexException {
+        if (request == null) {
+            throw new VortexException("Request cannot be null");
+        }
+        if (request.getScope() == null || request.getScope().isEmpty()) {
+            throw new VortexException("scope is required");
+        }
+        if (request.getScopeType() == null || request.getScopeType().isEmpty()) {
+            throw new VortexException("scopeType is required");
+        }
+        if (request.getWidgetId() == null || request.getWidgetId().isEmpty()) {
+            throw new VortexException("widgetId is required");
+        }
+
+        return apiRequest("POST", "/api/v1/invitations/autojoin", request, null, new TypeReference<AutojoinDomainsResponse>() {});
+    }
+
+    /**
      * Close the HTTP client when done
      */
     public void close() {
