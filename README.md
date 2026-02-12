@@ -171,8 +171,8 @@ public InvitationResult getInvitation(String invitationId)
 // Revoke invitation
 public void revokeInvitation(String invitationId)
 
-// Accept invitations
-public List<InvitationResult> acceptInvitations(List<String> invitationIds, InvitationTarget target)
+// Accept an invitation
+public InvitationResult acceptInvitation(String invitationId, AcceptUser user)
 
 // Reinvite user
 public InvitationResult reinvite(String invitationId)

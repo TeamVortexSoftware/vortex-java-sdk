@@ -154,6 +154,11 @@ public class VortexClient {
                 jwtPayload.put("adminScopes", user.getAdminScopes());
             }
 
+            // Add allowedEmailDomains if present (for domain-restricted invitations)
+            if (user.getAllowedEmailDomains() != null && !user.getAllowedEmailDomains().isEmpty()) {
+                jwtPayload.put("allowedEmailDomains", user.getAllowedEmailDomains());
+            }
+
             // Add any additional properties from params (excluding 'user')
             for (Map.Entry<String, Object> entry : params.entrySet()) {
                 if (!"user".equals(entry.getKey())) {
@@ -390,6 +395,24 @@ public class VortexClient {
         }
 
         return lastResult;
+    }
+
+    /**
+     * Accept a single invitation (recommended method)
+     *
+     * <p>This is the recommended method for accepting invitations.</p>
+     *
+     * @param invitationId Single invitation ID to accept
+     * @param user User object with email and/or phone
+     * @return InvitationResult The accepted invitation result
+     * @throws VortexException If the request fails
+     *
+     * @example
+     * AcceptUser user = new AcceptUser("user@example.com");
+     * InvitationResult result = client.acceptInvitation("inv-123", user);
+     */
+    public InvitationResult acceptInvitation(String invitationId, AcceptUser user) throws VortexException {
+        return acceptInvitations(List.of(invitationId), user);
     }
 
     /**

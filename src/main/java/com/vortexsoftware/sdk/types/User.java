@@ -15,6 +15,7 @@ import java.util.List;
  * - name: User's display name (max 200 characters)
  * - avatarUrl: User's avatar URL (must be HTTPS, max 2000 characters)
  * - adminScopes: List of admin scopes (e.g., ["autojoin"])
+ * - allowedEmailDomains: List of allowed email domains for invitation restrictions (e.g., ["acme.com", "acme.org"])
  *
  * Example:
  * <pre>{@code
@@ -22,6 +23,7 @@ import java.util.List;
  * user.setName("Jane Doe");
  * user.setAvatarUrl("https://example.com/avatars/jane.jpg");
  * user.setAdminScopes(Arrays.asList("autojoin"));
+ * user.setAllowedEmailDomains(Arrays.asList("acme.com", "acme.org"));
  * }</pre>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -40,6 +42,9 @@ public class User {
 
     @JsonProperty("adminScopes")
     private List<String> adminScopes;
+
+    @JsonProperty("allowedEmailDomains")
+    private List<String> allowedEmailDomains;
 
     /**
      * Default constructor for Jackson deserialization
@@ -110,6 +115,14 @@ public class User {
         this.userAvatarUrl = userAvatarUrl;
     }
 
+    public List<String> getAllowedEmailDomains() {
+        return allowedEmailDomains;
+    }
+
+    public void setAllowedEmailDomains(List<String> allowedEmailDomains) {
+        this.allowedEmailDomains = allowedEmailDomains;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -118,6 +131,7 @@ public class User {
                 ", userName='" + userName + '\'' +
                 ", userAvatarUrl='" + userAvatarUrl + '\'' +
                 ", adminScopes=" + adminScopes +
+                ", allowedEmailDomains=" + allowedEmailDomains +
                 '}';
     }
 }
