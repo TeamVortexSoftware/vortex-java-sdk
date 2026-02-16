@@ -31,7 +31,24 @@ public class VortexClient {
     private static final Logger logger = LoggerFactory.getLogger(VortexClient.class);
 
     private static final String DEFAULT_BASE_URL = "https://api.vortexsoftware.com";
-    private static final String USER_AGENT = "vortex-java-sdk/1.0.0";
+    private static final String SDK_NAME = "vortex-java-sdk";
+    private static final String SDK_VERSION = loadSdkVersion();
+    private static final String USER_AGENT = SDK_NAME + "/" + SDK_VERSION;
+
+    private static String loadSdkVersion() {
+        String version = VortexClient.class.getPackage().getImplementationVersion();
+        if (version != null) {
+            return version;
+        }
+        try (java.io.InputStream is = VortexClient.class.getResourceAsStream("/vortex-sdk.properties")) {
+            if (is != null) {
+                java.util.Properties props = new java.util.Properties();
+                props.load(is);
+                return props.getProperty("version", "unknown");
+            }
+        } catch (Exception ignored) {}
+        return "unknown";
+    }
 
     private final String apiKey;
     private final String baseUrl;
@@ -211,7 +228,9 @@ public class VortexClient {
             requestBuilder
                     .addHeader("Content-Type", "application/json")
                     .addHeader("User-Agent", USER_AGENT)
-                    .addHeader("x-api-key", apiKey);
+                    .addHeader("x-api-key", apiKey)
+                    .addHeader("x-vortex-sdk-name", SDK_NAME)
+                    .addHeader("x-vortex-sdk-version", SDK_VERSION);
 
             // Add body for POST/PUT requests
             if (body != null && ("POST".equals(method) || "PUT".equals(method))) {

@@ -16,10 +16,16 @@ public class AcceptInvitationRequest {
     @JsonProperty("user")
     private AcceptUser user;
 
+    /**
+     * Default constructor for Jackson deserialization
+     */
     public AcceptInvitationRequest() {}
 
     /**
      * Create request with new User format (preferred)
+     *
+     * @param invitationIds List of invitation IDs to accept
+     * @param user User data for the acceptance
      */
     public AcceptInvitationRequest(List<String> invitationIds, AcceptUser user) {
         this.invitationIds = invitationIds;
