@@ -581,6 +581,36 @@ public class VortexClient {
     }
 
     /**
+     * Sync an internal invitation action (accept or decline)
+     *
+     * <p>This method notifies Vortex that an internal invitation was accepted or declined
+     * within your application, so Vortex can update the invitation status accordingly.</p>
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * SyncInternalInvitationRequest request = new SyncInternalInvitationRequest(
+     *     "user-123",      // creatorId
+     *     "user-456",      // targetValue
+     *     "accepted",      // action
+     *     "component-uuid" // componentId
+     * );
+     * SyncInternalInvitationResponse response = client.syncInternalInvitation(request);
+     * System.out.println("Processed: " + response.getProcessed());
+     * }</pre>
+     *
+     * @param request The sync internal invitation request
+     * @return SyncInternalInvitationResponse with processed count and invitationIds
+     * @throws VortexException if the API request fails
+     */
+    public SyncInternalInvitationResponse syncInternalInvitation(SyncInternalInvitationRequest request) throws VortexException {
+        if (request == null) {
+            throw new VortexException("Request cannot be null");
+        }
+
+        return apiRequest("POST", "/api/v1/invitation-actions/sync-internal-invitation", request, null, new TypeReference<SyncInternalInvitationResponse>() {});
+    }
+
+    /**
      * Close the HTTP client when done
      */
     public void close() {
