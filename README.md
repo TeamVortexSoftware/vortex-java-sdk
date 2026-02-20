@@ -176,7 +176,37 @@ public InvitationResult acceptInvitation(String invitationId, AcceptUser user)
 
 // Reinvite user
 public InvitationResult reinvite(String invitationId)
+
+// Sync internal invitation action (accept or decline)
+public SyncInternalInvitationResult syncInternalInvitation(
+    String creatorId,      // The inviter's user ID in your system
+    String targetValue,    // The invitee's user ID in your system
+    String action,         // "accepted" or "declined"
+    String componentId     // The widget component UUID
+)
 ```
+
+**Sync Internal Invitation Example:**
+
+If you're using `internal` delivery type invitations and managing the invitation flow within your own application, you can sync invitation decisions back to Vortex when users accept or decline invitations in your system.
+
+```java
+// Sync an internal invitation action
+SyncInternalInvitationResult result = client.syncInternalInvitation(
+    "user-123",           // creatorId - The inviter's user ID
+    "user-456",           // targetValue - The invitee's user ID
+    "accepted",           // action - "accepted" or "declined"
+    "component-uuid"      // componentId - The widget component UUID
+);
+
+System.out.println("Processed: " + result.getProcessed());
+System.out.println("Invitation IDs: " + result.getInvitationIds());
+```
+
+**Use cases:**
+- You handle invitation delivery through your own in-app notifications or UI
+- Users accept/decline invitations within your application
+- You need to keep Vortex updated with the invitation status
 
 #### Group Operations
 

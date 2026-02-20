@@ -426,9 +426,10 @@ public class VortexClient {
      * @return InvitationResult The accepted invitation result
      * @throws VortexException If the request fails
      *
-     * @example
+     * <pre>{@code
      * AcceptUser user = new AcceptUser("user@example.com");
      * InvitationResult result = client.acceptInvitation("inv-123", user);
+     * }</pre>
      */
     public InvitationResult acceptInvitation(String invitationId, AcceptUser user) throws VortexException {
         return acceptInvitations(List.of(invitationId), user);
