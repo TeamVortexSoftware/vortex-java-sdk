@@ -252,7 +252,7 @@ The Java SDK provides the exact same route structure as other SDKs:
 | `/invitations/accept`                    | POST       | Accept invitations             |
 | `/invitations/by-group/{type}/{groupId}` | GET/DELETE | Group operations               |
 | `/invitations/{id}/reinvite`             | POST       | Reinvite user                  |
-| `/invitation-actions/sync-internal-invitation` | POST       | Sync internal invitation action  |
+| `/invitations/sync-internal-invitation` | POST       | Sync internal invitation action  |
 
 This ensures perfect compatibility with:
 

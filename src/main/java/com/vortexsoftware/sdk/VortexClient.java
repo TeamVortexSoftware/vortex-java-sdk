@@ -608,7 +608,7 @@ public class VortexClient {
             throw new VortexException("Request cannot be null");
         }
 
-        return apiRequest("POST", "/api/v1/invitation-actions/sync-internal-invitation", request, null, new TypeReference<SyncInternalInvitationResponse>() {});
+        return apiRequest("POST", "/api/v1/invitations/sync-internal-invitation", request, null, new TypeReference<SyncInternalInvitationResponse>() {});
     }
 
     /**
