@@ -404,6 +404,44 @@ public class VortexExample {
 
 Licensed under the MIT License. See LICENSE file for details.
 
+## Webhooks
+
+The SDK provides built-in support for verifying and parsing incoming webhook events from Vortex.
+
+```java
+import com.vortexsoftware.sdk.VortexWebhooks;
+import com.vortexsoftware.sdk.VortexWebhookSignatureException;
+import com.vortexsoftware.sdk.types.VortexWebhookEvent;
+import com.vortexsoftware.sdk.types.VortexAnalyticsEvent;
+import com.vortexsoftware.sdk.types.WebhookEventType;
+
+VortexWebhooks webhooks = new VortexWebhooks(System.getenv("VORTEX_WEBHOOK_SECRET"));
+
+// In your HTTP handler (Spring Boot example):
+@PostMapping("/webhooks/vortex")
+public ResponseEntity<String> handleWebhook(
+        @RequestBody String payload,
+        @RequestHeader("X-Vortex-Signature") String signature) {
+    try {
+        Object event = webhooks.constructEvent(payload, signature);
+
+        if (event instanceof VortexWebhookEvent) {
+            VortexWebhookEvent we = (VortexWebhookEvent) event;
+            if (WebhookEventType.INVITATION_ACCEPTED.equals(we.getType())) {
+                // Handle invitation accepted
+            }
+        } else if (event instanceof VortexAnalyticsEvent) {
+            VortexAnalyticsEvent ae = (VortexAnalyticsEvent) event;
+            System.out.println("Analytics: " + ae.getName());
+        }
+
+        return ResponseEntity.ok("OK");
+    } catch (VortexWebhookSignatureException e) {
+        return ResponseEntity.badRequest().body("Invalid signature");
+    }
+}
+```
+
 ## Support
 
 For support, please contact the Vortex team or create an issue in the repository.
