@@ -63,7 +63,7 @@ public class InvitationResult {
     private String projectId;
 
     @JsonProperty("groups")
-    private List<InvitationGroup> groups;
+    private List<InvitationScope> groups;
 
     @JsonProperty("accepts")
     private List<InvitationAcceptance> accepts;
@@ -246,12 +246,22 @@ public class InvitationResult {
         this.projectId = projectId;
     }
 
-    public List<InvitationGroup> getGroups() {
+    public List<InvitationScope> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<InvitationGroup> groups) {
+    public void setGroups(List<InvitationScope> groups) {
         this.groups = groups;
+    }
+
+    /** Preferred alias for getGroups(). Returns the same list. */
+    public List<InvitationScope> getScopes() {
+        return groups;
+    }
+
+    /** Preferred alias for setGroups(). */
+    public void setScopes(List<InvitationScope> scopes) {
+        this.groups = scopes;
     }
 
     public List<InvitationAcceptance> getAccepts() {

@@ -104,6 +104,103 @@ public class VortexClient {
      * @return JWT token
      * @throws VortexException if JWT generation fails
      */
+    /**
+     * Sign a user object for use with the widget signature prop.
+     *
+     * @param user Map with "id", "email", and optional user fields
+     * @return Signature string in "kid:hexDigest" format
+     * @throws VortexException if API key is invalid or signing fails
+     *
+     * @example
+     * <pre>{@code
+     * VortexClient client = new VortexClient(System.getenv("VORTEX_API_KEY"));
+     * String signature = client.sign(Map.of("id", "user-123", "email", "user@example.com"));
+     * }</pre>
+     */
+    public String sign(Map<String, Object> user) throws VortexException {
+        String[] parts = apiKey.split("\\.");
+        if (parts.length != 3 || !"VRTX".equals(parts[0])) {
+            throw new VortexException("Invalid API key format");
+        }
+
+        try {
+            byte[] uuidBytes = Base64.getUrlDecoder().decode(parts[1]);
+            UUID uuid = bytesToUuid(uuidBytes);
+            String kid = uuid.toString();
+            String key = parts[2];
+
+            // Derive signing key
+            Mac signingMac = Mac.getInstance("HmacSHA256");
+            signingMac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] signingKey = signingMac.doFinal(kid.getBytes(StandardCharsets.UTF_8));
+
+            // Build canonical payload — include ALL user fields with key normalization
+            TreeMap<String, Object> canonical = new TreeMap<>();
+            for (Map.Entry<String, Object> entry : user.entrySet()) {
+                String k = entry.getKey();
+                if ("id".equals(k)) {
+                    canonical.put("userId", entry.getValue());
+                } else if ("email".equals(k)) {
+                    canonical.put("userEmail", entry.getValue());
+                } else {
+                    canonical.put(k, entry.getValue());
+                }
+            }
+            if (!canonical.containsKey("userId") || canonical.get("userId") == null) {
+                throw new VortexException("userId (or id) is required for signing");
+            }
+
+            // TreeMap is already sorted; recursively canonicalize nested structures
+            Object canonicalized = canonicalizeValue(canonical);
+            String canonicalJson = objectMapper.writeValueAsString(canonicalized);
+
+            // HMAC-SHA256
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(signingKey, "HmacSHA256"));
+            byte[] digestBytes = mac.doFinal(canonicalJson.getBytes(StandardCharsets.UTF_8));
+            String digest = bytesToHex(digestBytes);
+
+            return kid + ":" + digest;
+        } catch (Exception e) {
+            throw new VortexException("Failed to sign user data: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object canonicalizeValue(Object value) {
+        if (value instanceof Map) {
+            TreeMap<String, Object> sorted = new TreeMap<>();
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                sorted.put(entry.getKey(), canonicalizeValue(entry.getValue()));
+            }
+            return sorted;
+        }
+        if (value instanceof java.util.List) {
+            java.util.List<Object> list = (java.util.List<Object>) value;
+            java.util.List<Object> result = new java.util.ArrayList<>();
+            for (Object item : list) {
+                result.add(canonicalizeValue(item));
+            }
+            return result;
+        }
+        return value;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    private static UUID bytesToUuid(byte[] bytes) {
+        long msb = 0, lsb = 0;
+        for (int i = 0; i < 8; i++) msb = (msb << 8) | (bytes[i] & 0xff);
+        for (int i = 8; i < 16; i++) lsb = (lsb << 8) | (bytes[i] & 0xff);
+        return new UUID(msb, lsb);
+    }
+
     public String generateJwt(Map<String, Object> params) throws VortexException {
         try {
             // Extract user from params
@@ -156,14 +253,16 @@ public class VortexClient {
             jwtPayload.put("userEmail", user.getEmail());
             jwtPayload.put("expires", expires);
 
-            // Add name if present
-            if (user.getUserName() != null) {
-                jwtPayload.put("userName", user.getUserName());
+            // Add name if present (prefer new property, fall back to deprecated)
+            String userName = user.getName() != null ? user.getName() : user.getUserName();
+            if (userName != null) {
+                jwtPayload.put("name", userName);
             }
 
-            // Add userAvatarUrl if present
-            if (user.getUserAvatarUrl() != null) {
-                jwtPayload.put("userAvatarUrl", user.getUserAvatarUrl());
+            // Add avatarUrl if present (prefer new property, fall back to deprecated)
+            String userAvatarUrl = user.getAvatarUrl() != null ? user.getAvatarUrl() : user.getUserAvatarUrl();
+            if (userAvatarUrl != null) {
+                jwtPayload.put("avatarUrl", userAvatarUrl);
             }
 
             // Add adminScopes if present
@@ -438,15 +537,15 @@ public class VortexClient {
     /**
      * Delete all invitations for a specific group
      */
-    public void deleteInvitationsByGroup(String groupType, String groupId) throws VortexException {
-        apiRequest("DELETE", "/api/v1/invitations/by-group/" + groupType + "/" + groupId, null, null, new TypeReference<Void>() {});
+    public void deleteInvitationsByScope(String scopeType, String scope) throws VortexException {
+        apiRequest("DELETE", "/api/v1/invitations/by-scope/" + scopeType + "/" + scope, null, null, new TypeReference<Void>() {});
     }
 
     /**
      * Get all invitations for a specific group
      */
-    public List<InvitationResult> getInvitationsByGroup(String groupType, String groupId) throws VortexException {
-        InvitationResponse response = apiRequest("GET", "/api/v1/invitations/by-group/" + groupType + "/" + groupId, null, null, new TypeReference<InvitationResponse>() {});
+    public List<InvitationResult> getInvitationsByScope(String scopeType, String scope) throws VortexException {
+        InvitationResponse response = apiRequest("GET", "/api/v1/invitations/by-scope/" + scopeType + "/" + scope, null, null, new TypeReference<InvitationResponse>() {});
         return response != null ? response.getInvitations() : new ArrayList<>();
     }
 
@@ -479,7 +578,7 @@ public class VortexClient {
      *     new Inviter("user-456", "inviter@example.com", "John Doe", null)
      * );
      * request.setGroups(Arrays.asList(
-     *     new CreateInvitationGroup("team", "team-789", "Engineering")
+     *     new CreateInvitationScope("team", "team-789", "Engineering")
      * ));
      * CreateInvitationResponse response = client.createInvitation(request);
      * System.out.println("Invitation created: " + response.getId());
@@ -513,6 +612,22 @@ public class VortexClient {
         }
         if (request.getInviter() == null || request.getInviter().getUserId() == null || request.getInviter().getUserId().isEmpty()) {
             throw new VortexException("inviter with userId is required");
+        }
+
+        // Scope translation: flat params > scopes > groups
+        if (request.getScopeId() != null && !request.getScopeId().isEmpty()
+                && (request.getGroups() == null || request.getGroups().isEmpty())
+                && (request.getScopes() == null || request.getScopes().isEmpty())) {
+            request.setGroups(java.util.List.of(
+                new CreateInvitationScope(
+                    request.getScopeType() != null ? request.getScopeType() : "",
+                    request.getScopeId(),
+                    request.getScopeName() != null ? request.getScopeName() : ""
+                )
+            ));
+        } else if (request.getScopes() != null && !request.getScopes().isEmpty()
+                && (request.getGroups() == null || request.getGroups().isEmpty())) {
+            request.setGroups(request.getScopes());
         }
 
         return apiRequest("POST", "/api/v1/invitations", request, null, new TypeReference<CreateInvitationResponse>() {});
@@ -609,6 +724,110 @@ public class VortexClient {
         }
 
         return apiRequest("POST", "/api/v1/invitations/sync-internal-invitation", request, null, new TypeReference<SyncInternalInvitationResponse>() {});
+    }
+
+    /**
+     * Parse an expiration time string or number into seconds
+     */
+    private long parseExpiresIn(Object expiresIn) throws VortexException {
+        if (expiresIn instanceof Number) {
+            long seconds = ((Number) expiresIn).longValue();
+            if (seconds <= 0) {
+                throw new VortexException("Invalid expiresIn value: \"" + expiresIn + "\". Numeric expiresIn must be positive.");
+            }
+            return seconds;
+        }
+        if (expiresIn instanceof String) {
+            String str = (String) expiresIn;
+            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^(\\d+)(m|h|d)$");
+            java.util.regex.Matcher matcher = pattern.matcher(str);
+            if (!matcher.matches()) {
+                throw new VortexException("Invalid expiresIn format: \"" + str + "\". Use \"5m\", \"1h\", \"24h\", \"7d\" or seconds.");
+            }
+            long value = Long.parseLong(matcher.group(1));
+            if (value <= 0) {
+                throw new VortexException("Invalid expiresIn value: \"" + str + "\". Duration must be positive.");
+            }
+            String unit = matcher.group(2);
+            switch (unit) {
+                case "m": return value * 60L;
+                case "h": return value * 60L * 60L;
+                case "d": return value * 60L * 60L * 24L;
+                default: throw new VortexException("Unknown time unit: " + unit);
+            }
+        }
+        throw new VortexException("expiresIn must be a String or Number");
+    }
+
+    /**
+     * Generate a signed token for use with Vortex widgets
+     * @param payload Data to sign (user, component, scope, vars, etc.)
+     * @return Signed JWT token string
+     */
+    public String generateToken(GenerateTokenPayload payload) throws VortexException {
+        return generateToken(payload, null);
+    }
+
+    /**
+     * Generate a signed token for use with Vortex widgets
+     * @param payload Data to sign (user, component, scope, vars, etc.)
+     * @param options Optional configuration (expiresIn)
+     * @return Signed JWT token string
+     */
+    public String generateToken(GenerateTokenPayload payload, GenerateTokenOptions options) throws VortexException {
+        try {
+            if (payload.getUser() == null || payload.getUser().getId() == null) {
+                logger.warn("[Vortex SDK] Warning: signing payload without user.id means invitations won't be securely attributed.");
+            }
+            String[] parts = apiKey.split("\\.");
+            if (parts.length != 3 || !"VRTX".equals(parts[0])) {
+                throw new VortexException("Invalid API key format");
+            }
+            byte[] uuidBytes = Base64.getUrlDecoder().decode(parts[1]);
+            String kid = bytesToUUID(uuidBytes);
+
+            long expiresInSeconds = 5L * 60L;
+            if (options != null && options.getExpiresIn() != null) {
+                expiresInSeconds = parseExpiresIn(options.getExpiresIn());
+            }
+            long now = Instant.now().getEpochSecond();
+            long exp = now + expiresInSeconds;
+
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            SecretKeySpec keySpec = new SecretKeySpec(parts[2].getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            hmacSha256.init(keySpec);
+            byte[] signingKey = hmacSha256.doFinal(kid.getBytes(StandardCharsets.UTF_8));
+
+            Map<String, Object> header = new LinkedHashMap<>();
+            header.put("alg", "HS256");
+            header.put("typ", "JWT");
+            header.put("kid", kid);
+
+            Map<String, Object> jwtPayload = new LinkedHashMap<>();
+            if (payload.getComponent() != null) jwtPayload.put("component", payload.getComponent());
+            if (payload.getTrigger() != null) jwtPayload.put("trigger", payload.getTrigger());
+            if (payload.getEmbed() != null) jwtPayload.put("embed", payload.getEmbed());
+            if (payload.getUser() != null) jwtPayload.put("user", objectMapper.convertValue(payload.getUser(), Map.class));
+            if (payload.getScope() != null) jwtPayload.put("scope", payload.getScope());
+            if (payload.getVars() != null) jwtPayload.put("vars", payload.getVars());
+            if (payload.getAdditionalProperties() != null) jwtPayload.putAll(payload.getAdditionalProperties());
+            jwtPayload.put("iat", now);
+            jwtPayload.put("exp", exp);
+
+            String headerB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(objectMapper.writeValueAsString(header).getBytes(StandardCharsets.UTF_8));
+            String payloadB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(objectMapper.writeValueAsString(jwtPayload).getBytes(StandardCharsets.UTF_8));
+
+            String toSign = headerB64 + "." + payloadB64;
+            Mac signer = Mac.getInstance("HmacSHA256");
+            signer.init(new SecretKeySpec(signingKey, "HmacSHA256"));
+            String signatureB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(signer.doFinal(toSign.getBytes(StandardCharsets.UTF_8)));
+
+            return toSign + "." + signatureB64;
+        } catch (VortexException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new VortexException("Failed to generate token: " + e.getMessage(), e);
+        }
     }
 
     /**

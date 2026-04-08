@@ -1,0 +1,4 @@
+/app/src/test/java/com/teamvortexsoftware/vortex/integration/HappyPathIntegrationTest.java
+/app/src/test/java/com/vortexsoftware/sdk/VortexClientTest.java
+/app/src/test/java/com/vortexsoftware/sdk/spring/VortexControllerTest.java
+/app/src/test/java/com/vortexsoftware/sdk/types/InvitationGroupTest.java

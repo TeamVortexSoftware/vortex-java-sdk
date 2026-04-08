@@ -81,13 +81,13 @@ public class HappyPathIntegrationTest {
             throw new IllegalStateException("Missing required environment variable: TEST_INTEGRATION_SDKS_VORTEX_COMPONENT_ID");
         }
 
-        String groupType = System.getenv("TEST_INTEGRATION_SDKS_GROUP_TYPE");
-        if (groupType == null || groupType.isEmpty()) {
+        String scopeType = System.getenv("TEST_INTEGRATION_SDKS_GROUP_TYPE");
+        if (scopeType == null || scopeType.isEmpty()) {
             throw new IllegalStateException("Missing required environment variable: TEST_INTEGRATION_SDKS_GROUP_TYPE");
         }
 
         // TEST_INTEGRATION_SDKS_GROUP_ID is dynamic - generated from timestamp
-        String groupId = "test-group-" + timestamp;
+        String scope = "test-group-" + timestamp;
 
         String groupName = System.getenv("TEST_INTEGRATION_SDKS_GROUP_NAME");
         if (groupName == null || groupName.isEmpty()) {
@@ -96,7 +96,7 @@ public class HappyPathIntegrationTest {
 
         // Step 1: Create invitation
         System.out.println("Step 1: Creating invitation...");
-        invitationId = createInvitation(userEmail, componentId, groupType, groupId, groupName);
+        invitationId = createInvitation(userEmail, componentId, scopeType, scope, groupName);
         assertNotNull(invitationId, "Failed to create invitation");
         System.out.println("✓ Created invitation: " + invitationId);
 
@@ -138,7 +138,7 @@ public class HappyPathIntegrationTest {
     }
 
     private String createInvitation(String userEmail, String componentId,
-                                   String groupType, String groupId, String groupName) throws Exception {
+                                   String scopeType, String scope, String groupName) throws Exception {
         // Generate JWT for authentication
         VortexClient jwtClient = new VortexClient(apiKey, clientApiUrl);
         // Extract timestamp from userEmail to keep it consistent
@@ -196,8 +196,8 @@ public class HappyPathIntegrationTest {
         payload.put("emails", emailData);
 
         Map<String, String> group = new HashMap<>();
-        group.put("type", groupType);
-        group.put("groupId", groupId);
+        group.put("type", scopeType);
+        group.put("groupId", scope);
         group.put("name", groupName);
 
         Map<String, String> templateVariables = new HashMap<>();

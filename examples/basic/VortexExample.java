@@ -145,21 +145,21 @@ public class VortexExample {
 
         try {
             // Get invitations for a specific group
-            List<InvitationResult> groupInvitations = client.getInvitationsByGroup(
+            List<InvitationResult> groupInvitations = client.getInvitationsByScope(
                     "team",
                     "engineering-team"
             );
             System.out.println("✅ Found " + groupInvitations.size() + " invitations for engineering team");
 
             // Get invitations for an organization
-            List<InvitationResult> orgInvitations = client.getInvitationsByGroup(
+            List<InvitationResult> orgInvitations = client.getInvitationsByScope(
                     "organization",
                     "acme-corp"
             );
             System.out.println("✅ Found " + orgInvitations.size() + " invitations for Acme Corp");
 
             // Delete all invitations for a group (be careful!)
-            // client.deleteInvitationsByGroup("team", "old-team");
+            // client.deleteInvitationsByScope("team", "old-team");
             // System.out.println("✅ Deleted all invitations for old team");
 
         } catch (VortexException e) {

@@ -21,7 +21,7 @@ import java.util.Map;
  *     new Inviter("user-456", "inviter@example.com", "John Doe", null)
  * );
  * request.setGroups(Arrays.asList(
- *     new CreateInvitationGroup("team", "team-789", "Engineering")
+ *     new CreateInvitationScope("team", "team-789", "Engineering")
  * ));
  * CreateInvitationResponse response = client.createInvitation(request);
  * }</pre>
@@ -39,7 +39,23 @@ public class CreateInvitationRequest {
     private Inviter inviter;
 
     @JsonProperty("groups")
-    private List<CreateInvitationGroup> groups;
+    private List<CreateInvitationScope> groups;
+
+    /** Preferred: flat scope ID for single scope (takes priority over groups/scopes) */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String scopeId;
+
+    /** Scope type when using flat scopeId param */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String scopeType;
+
+    /** Scope name when using flat scopeId param */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private String scopeName;
+
+    /** Deprecated: use scopeId/scopeType/scopeName or groups */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private List<CreateInvitationScope> scopes;
 
     @JsonProperty("source")
     private String source;
@@ -92,11 +108,11 @@ public class CreateInvitationRequest {
         this.inviter = inviter;
     }
 
-    public List<CreateInvitationGroup> getGroups() {
+    public List<CreateInvitationScope> getGroups() {
         return groups;
     }
 
-    public void setGroups(List<CreateInvitationGroup> groups) {
+    public void setGroups(List<CreateInvitationScope> groups) {
         this.groups = groups;
     }
 
@@ -138,5 +154,39 @@ public class CreateInvitationRequest {
 
     public void setUnfurlConfig(UnfurlConfig unfurlConfig) {
         this.unfurlConfig = unfurlConfig;
+    }
+
+    public String getScopeId() {
+        return scopeId;
+    }
+
+    public void setScopeId(String scopeId) {
+        this.scopeId = scopeId;
+    }
+
+    public String getScopeType() {
+        return scopeType;
+    }
+
+    public void setScopeType(String scopeType) {
+        this.scopeType = scopeType;
+    }
+
+    public String getScopeName() {
+        return scopeName;
+    }
+
+    public void setScopeName(String scopeName) {
+        this.scopeName = scopeName;
+    }
+
+    /** @deprecated Use setScopeId/setScopeType/setScopeName or setGroups */
+    public List<CreateInvitationScope> getScopes() {
+        return scopes;
+    }
+
+    /** @deprecated Use setScopeId/setScopeType/setScopeName or setGroups */
+    public void setScopes(List<CreateInvitationScope> scopes) {
+        this.scopes = scopes;
     }
 }

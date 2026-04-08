@@ -15,10 +15,22 @@ public class Inviter {
     @JsonProperty("userEmail")
     private String userEmail;
 
+    /** Display name of the inviter (preferred) */
+    @JsonProperty("name")
+    private String name;
+
+    /** Avatar URL of the inviter (preferred) */
+    @JsonProperty("avatarUrl")
+    private String avatarUrl;
+
+    /** @deprecated Use name instead */
     @JsonProperty("userName")
+    @Deprecated
     private String userName;
 
+    /** @deprecated Use avatarUrl instead */
     @JsonProperty("userAvatarUrl")
+    @Deprecated
     private String userAvatarUrl;
 
     public Inviter() {
@@ -34,14 +46,14 @@ public class Inviter {
     /**
      * @param userId Required: Your internal user ID for the inviter
      * @param userEmail Optional: Email of the inviter
-     * @param userName Optional: Display name of the inviter
-     * @param userAvatarUrl Optional: Avatar URL of the inviter
+     * @param name Optional: Display name of the inviter
+     * @param avatarUrl Optional: Avatar URL of the inviter
      */
-    public Inviter(String userId, String userEmail, String userName, String userAvatarUrl) {
+    public Inviter(String userId, String userEmail, String name, String avatarUrl) {
         this.userId = userId;
         this.userEmail = userEmail;
-        this.userName = userName;
-        this.userAvatarUrl = userAvatarUrl;
+        this.name = name;
+        this.avatarUrl = avatarUrl;
     }
 
     public String getUserId() {
@@ -60,18 +72,42 @@ public class Inviter {
         this.userEmail = userEmail;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    /** @deprecated Use getName() instead */
+    @Deprecated
     public String getUserName() {
         return userName;
     }
 
+    /** @deprecated Use setName() instead */
+    @Deprecated
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
+    /** @deprecated Use getAvatarUrl() instead */
+    @Deprecated
     public String getUserAvatarUrl() {
         return userAvatarUrl;
     }
 
+    /** @deprecated Use setAvatarUrl() instead */
+    @Deprecated
     public void setUserAvatarUrl(String userAvatarUrl) {
         this.userAvatarUrl = userAvatarUrl;
     }

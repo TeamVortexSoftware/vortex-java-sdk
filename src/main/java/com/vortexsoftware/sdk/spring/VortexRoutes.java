@@ -15,7 +15,7 @@ public final class VortexRoutes {
     public static final String INVITATIONS = "/invitations";
     public static final String INVITATION = "/invitations/{invitationId}";
     public static final String INVITATIONS_ACCEPT = "/invitations/accept";
-    public static final String INVITATIONS_BY_GROUP = "/invitations/by-group/{groupType}/{groupId}";
+    public static final String INVITATIONS_BY_GROUP = "/invitations/by-scope/{scopeType}/{scope}";
     public static final String INVITATION_REINVITE = "/invitations/{invitationId}/reinvite";
 
     private VortexRoutes() {

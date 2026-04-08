@@ -34,10 +34,22 @@ public class User {
     @JsonProperty("email")
     private String email;
 
+    /** User's display name (preferred) */
+    @JsonProperty("name")
+    private String name;
+
+    /** User's avatar URL (preferred) */
+    @JsonProperty("avatarUrl")
+    private String avatarUrl;
+
+    /** @deprecated Use name instead */
     @JsonProperty("userName")
+    @Deprecated
     private String userName;
 
+    /** @deprecated Use avatarUrl instead */
     @JsonProperty("userAvatarUrl")
+    @Deprecated
     private String userAvatarUrl;
 
     @JsonProperty("adminScopes")
@@ -99,18 +111,42 @@ public class User {
         this.adminScopes = adminScopes;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    /** @deprecated Use getName() instead */
+    @Deprecated
     public String getUserName() {
         return userName;
     }
 
+    /** @deprecated Use setName() instead */
+    @Deprecated
     public void setUserName(String userName) {
         this.userName = userName;
     }
 
+    /** @deprecated Use getAvatarUrl() instead */
+    @Deprecated
     public String getUserAvatarUrl() {
         return userAvatarUrl;
     }
 
+    /** @deprecated Use setAvatarUrl() instead */
+    @Deprecated
     public void setUserAvatarUrl(String userAvatarUrl) {
         this.userAvatarUrl = userAvatarUrl;
     }
@@ -128,8 +164,8 @@ public class User {
         return "User{" +
                 "id='" + id + '\'' +
                 ", email='" + email + '\'' +
-                ", userName='" + userName + '\'' +
-                ", userAvatarUrl='" + userAvatarUrl + '\'' +
+                ", name='" + name + '\'' +
+                ", avatarUrl='" + avatarUrl + '\'' +
                 ", adminScopes=" + adminScopes +
                 ", allowedEmailDomains=" + allowedEmailDomains +
                 '}';

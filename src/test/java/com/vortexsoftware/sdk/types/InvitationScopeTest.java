@@ -5,15 +5,15 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for InvitationGroup deserialization to ensure all 6 fields
+ * Tests for InvitationScope deserialization to ensure all 6 fields
  * from the API response (MemberGroups table) are properly captured
  */
-public class InvitationGroupTest {
+public class InvitationScopeTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void testInvitationGroupDeserialization() throws Exception {
+    public void testInvitationScopeDeserialization() throws Exception {
         // This is the actual structure returned by the API (MemberGroups table)
         String apiResponse = """
             {
@@ -26,7 +26,7 @@ public class InvitationGroupTest {
             }
             """;
 
-        InvitationGroup group = objectMapper.readValue(apiResponse, InvitationGroup.class);
+        InvitationScope group = objectMapper.readValue(apiResponse, InvitationScope.class);
 
         // Verify all 6 fields are present and correct
         assertEquals("550e8400-e29b-41d4-a716-446655440000", group.getId(),
@@ -83,7 +83,7 @@ public class InvitationGroupTest {
         assertNotNull(invitation.getGroups(), "Groups should not be null");
         assertEquals(1, invitation.getGroups().size(), "Should have 1 group");
 
-        InvitationGroup group = invitation.getGroups().get(0);
+        InvitationScope group = invitation.getGroups().get(0);
         assertEquals("workspace-123", group.getGroupId(),
                 "Customer's group ID should be accessible");
         assertEquals("6ba7b810-9dad-11d1-80b4-00c04fd430c8", group.getAccountId(),
@@ -93,8 +93,8 @@ public class InvitationGroupTest {
     }
 
     @Test
-    public void testInvitationGroupSerialization() throws Exception {
-        InvitationGroup group = new InvitationGroup(
+    public void testInvitationScopeSerialization() throws Exception {
+        InvitationScope group = new InvitationScope(
                 "550e8400-e29b-41d4-a716-446655440000",
                 "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
                 "workspace-123",
@@ -122,7 +122,7 @@ public class InvitationGroupTest {
     @Test
     public void testGroupIdAccessibility() throws Exception {
         // This test specifically verifies the fix for the reported issue
-        // where customers couldn't access groupId
+        // where customers couldn't access scope
         String apiResponse = """
             {
                 "id": "internal-uuid",
@@ -134,7 +134,7 @@ public class InvitationGroupTest {
             }
             """;
 
-        InvitationGroup group = objectMapper.readValue(apiResponse, InvitationGroup.class);
+        InvitationScope group = objectMapper.readValue(apiResponse, InvitationScope.class);
 
         // This is the critical assertion - customers need access to THEIR group ID
         assertNotNull(group.getGroupId(),

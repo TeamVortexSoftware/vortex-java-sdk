@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a group for JWT generation (input).
- * This is a simpler structure than InvitationGroup, used for creating JWTs.
- * Supports both 'id' (legacy) and 'groupId' (preferred) for backward compatibility.
+ * This is a simpler structure than InvitationScope, used for creating JWTs.
+ * Supports both 'id' (legacy) and 'scope' (preferred) for backward compatibility.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Group {
@@ -16,8 +16,8 @@ public class Group {
     @JsonProperty("id")
     private String id;
 
-    @JsonProperty("groupId")
-    private String groupId;
+    @JsonProperty("scope")
+    private String scope;
 
     @JsonProperty("name")
     private String name;
@@ -29,11 +29,11 @@ public class Group {
         this.name = name;
     }
 
-    public Group(String type, String name, String id, String groupId) {
+    public Group(String type, String name, String id, String scope) {
         this.type = type;
         this.name = name;
         this.id = id;
-        this.groupId = groupId;
+        this.scope = scope;
     }
 
     public String getType() {
@@ -53,11 +53,11 @@ public class Group {
     }
 
     public String getGroupId() {
-        return groupId;
+        return scope;
     }
 
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
+    public void setGroupId(String scope) {
+        this.scope = scope;
     }
 
     public String getName() {
@@ -73,7 +73,7 @@ public class Group {
         return "Group{" +
                 "type='" + type + '\'' +
                 ", id='" + id + '\'' +
-                ", groupId='" + groupId + '\'' +
+                ", scope='" + scope + '\'' +
                 ", name='" + name + '\'' +
                 '}';
     }

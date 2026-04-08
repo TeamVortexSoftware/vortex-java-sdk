@@ -6,7 +6,7 @@ A comprehensive Java SDK for integrating with the Vortex API, providing invitati
 
 - 🔐 **JWT Generation**: Same algorithm as Node.js SDK for perfect compatibility
 - 📧 **Invitation Management**: Complete CRUD operations for invitations
-- 👥 **Group Operations**: Manage invitations by groups
+- 👥 **Scope Operations**: Manage invitations by scope
 - 🚀 **Spring Boot Integration**: Auto-configuration and ready-to-use controllers
 - 🧪 **Comprehensive Testing**: Full test coverage with WireMock integration
 - 📱 **React Provider Compatible**: Same route structure as other SDKs
@@ -53,8 +53,8 @@ VortexClient client = new VortexClient("your-api-key-here");
 User user = new User.Builder()
     .id("user-123")
     .email("user@example.com")
-    .userName("Jane Doe")                                    // Optional: user's display name
-    .userAvatarUrl("https://example.com/avatars/jane.jpg")  // Optional: user's avatar URL
+    .name("Jane Doe")                                    // Optional: user's display name
+    .avatarUrl("https://example.com/avatars/jane.jpg")  // Optional: user's avatar URL
     .adminScopes(Arrays.asList("autojoin"))             // Optional: grants autojoin admin privileges
     .build();
 
@@ -85,8 +85,8 @@ The SDK will auto-configure and provide these endpoints:
 - `GET /api/vortex/invitations/{id}` - Get specific invitation
 - `DELETE /api/vortex/invitations/{id}` - Revoke invitation
 - `POST /api/vortex/invitations/accept` - Accept invitations
-- `GET /api/vortex/invitations/by-group/{type}/{id}` - Get group invitations
-- `DELETE /api/vortex/invitations/by-group/{type}/{id}` - Delete group invitations
+- `GET /api/vortex/invitations/by-scope/{type}/{scope}` - Get scope invitations
+- `DELETE /api/vortex/invitations/by-scope/{type}/{scope}` - Delete scope invitations
 - `POST /api/vortex/invitations/{id}/reinvite` - Reinvite user
 
 ### Custom Spring Configuration
@@ -149,8 +149,8 @@ Example:
 User user = new User.Builder()
     .id("user-123")
     .email("user@example.com")
-    .userName("Jane Doe")                                    // Optional: max 200 chars
-    .userAvatarUrl("https://example.com/avatars/jane.jpg")  // Optional: HTTPS URL, max 2000 chars
+    .name("Jane Doe")                                    // Optional: max 200 chars
+    .avatarUrl("https://example.com/avatars/jane.jpg")  // Optional: HTTPS URL, max 2000 chars
     .adminScopes(Arrays.asList("autojoin"))             // Optional: grants admin privileges
     .build();
 
@@ -158,6 +158,41 @@ String jwt = client.generateJwt(user, null);
 ```
 
 Uses the same algorithm as other Vortex SDKs for perfect cross-platform compatibility.
+
+#### Generate Token (Flexible Payload Signing)
+
+```java
+public String generateToken(GenerateTokenPayload payload) throws VortexException
+public String generateToken(GenerateTokenPayload payload, GenerateTokenOptions options) throws VortexException
+```
+
+Generates a signed JWT token for use with Vortex widgets. This method is more flexible than `generateJwt` and allows you to sign arbitrary payload data.
+
+**Basic usage:**
+
+```java
+GenerateTokenPayload payload = new GenerateTokenPayload()
+    .setUser(new GenerateTokenUser("user-123"));
+String token = client.generateToken(payload);
+```
+
+**Full payload:**
+
+```java
+GenerateTokenPayload payload = new GenerateTokenPayload()
+    .setComponent("widget-abc")
+    .setUser(new GenerateTokenUser("user-123").setName("Peter").setEmail("peter@example.com"))
+    .setScope("workspace_456")
+    .setVars(Map.of("company_name", "Acme"));
+String token = client.generateToken(payload);
+```
+
+**Custom expiration (default is 5 minutes):**
+
+```java
+GenerateTokenOptions options = new GenerateTokenOptions("1h");  // or new GenerateTokenOptions(3600)
+String token = client.generateToken(payload, options);
+```
 
 #### Invitation Management
 
@@ -173,6 +208,11 @@ public void revokeInvitation(String invitationId)
 
 // Accept an invitation
 public InvitationResult acceptInvitation(String invitationId, AcceptUser user)
+
+// Accept with isExisting tracking (new vs existing user)
+AcceptUser user = new AcceptUser("user@example.com");
+user.setIsExisting(false); // false = new signup, true = existing user
+InvitationResult result = client.acceptInvitation("inv-123", user);
 
 // Reinvite user
 public InvitationResult reinvite(String invitationId)
@@ -204,18 +244,19 @@ System.out.println("Invitation IDs: " + result.getInvitationIds());
 ```
 
 **Use cases:**
+
 - You handle invitation delivery through your own in-app notifications or UI
 - Users accept/decline invitations within your application
 - You need to keep Vortex updated with the invitation status
 
-#### Group Operations
+#### Scope Operations
 
 ```java
-// Get invitations by group
-public List<InvitationResult> getInvitationsByGroup(String groupType, String groupId)
+// Get invitations by scope
+public List<InvitationResult> getInvitationsByScope(String scopeType, String scope)
 
-// Delete all invitations for a group
-public void deleteInvitationsByGroup(String groupType, String groupId)
+// Delete all invitations for a scope
+public void deleteInvitationsByScope(String scopeType, String scope)
 ```
 
 ### Types
@@ -232,9 +273,9 @@ Complete invitation data with status, delivery information, and metadata.
 
 Represents invitation targets (email, SMS, etc.).
 
-#### InvitationGroup
+#### InvitationScope
 
-Group membership information.
+Scope membership information.
 
 #### AcceptInvitationRequest
 
@@ -244,15 +285,15 @@ Request payload for accepting invitations.
 
 The Java SDK provides the exact same route structure as other SDKs:
 
-| Route                                    | Method     | Purpose                        |
-| ---------------------------------------- | ---------- | ------------------------------ |
-| `/jwt`                                   | POST       | Generate JWT                   |
-| `/invitations`                           | GET        | Get invitations by target      |
-| `/invitations/{id}`                      | GET/DELETE | Get/revoke specific invitation |
-| `/invitations/accept`                    | POST       | Accept invitations             |
-| `/invitations/by-group/{type}/{groupId}` | GET/DELETE | Group operations               |
-| `/invitations/{id}/reinvite`             | POST       | Reinvite user                  |
-| `/invitations/sync-internal-invitation` | POST       | Sync internal invitation action  |
+| Route                                   | Method     | Purpose                         |
+| --------------------------------------- | ---------- | ------------------------------- |
+| `/jwt`                                  | POST       | Generate JWT                    |
+| `/invitations`                          | GET        | Get invitations by target       |
+| `/invitations/{id}`                     | GET/DELETE | Get/revoke specific invitation  |
+| `/invitations/accept`                   | POST       | Accept invitations              |
+| `/invitations/by-scope/{type}/{scope}`  | GET/DELETE | Scope operations                |
+| `/invitations/{id}/reinvite`            | POST       | Reinvite user                   |
+| `/invitations/sync-internal-invitation` | POST       | Sync internal invitation action |
 
 This ensures perfect compatibility with:
 

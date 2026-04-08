@@ -1,15 +1,17 @@
 # Vortex Java SDK Implementation Guide
 
-**Group ID:** `com.vortexsoftware`
+**Maven Group ID:** `com.vortexsoftware`
 **Artifact ID:** `vortex-java-sdk`
 **Version:** `1.1.0+`
 **Requires:** Java 17+
 
 ## Prerequisites
+
 From integration contract you need: API endpoint prefix, scope entity, authentication pattern
 From discovery data you need: Spring Boot version, database ORM (Spring Data JPA, MyBatis, etc.), auth framework
 
 ## Key Facts
+
 - Spring Boot auto-configuration available (recommended)
 - Implement `VortexConfig` interface for authentication
 - All methods throw `VortexException` - handle errors
@@ -21,6 +23,7 @@ From discovery data you need: Spring Boot version, database ORM (Spring Data JPA
 ## Step 1: Install
 
 **Maven - add to `pom.xml`:**
+
 ```xml
 <dependency>
     <groupId>com.vortexsoftware</groupId>
@@ -30,6 +33,7 @@ From discovery data you need: Spring Boot version, database ORM (Spring Data JPA
 ```
 
 **Gradle - add to `build.gradle`:**
+
 ```gradle
 dependencies {
     implementation 'com.vortexsoftware:vortex-java-sdk:1.1.0'
@@ -59,6 +63,7 @@ vortex:
 ```
 
 Or `application.properties`:
+
 ```properties
 vortex.api.key=${VORTEX_API_KEY}
 ```
@@ -128,6 +133,7 @@ public class VortexSecurityConfiguration {
 ```
 
 **Adapt to their patterns:**
+
 - Match their UserDetails implementation for email extraction
 - Match their role/authority checking pattern
 - Match their authentication framework (Spring Security, custom, etc.)
@@ -200,10 +206,10 @@ public class CustomVortexController {
             // 3. Add user to database - adapt to your ORM
             // Spring Data JPA example:
             for (InvitationResult result : results) {
-                for (InvitationGroup group : result.getGroups()) {
+                for (InvitationScope scope : result.getGroups()) {
                     WorkspaceMember member = new WorkspaceMember();
                     member.setUserId(user.getUserId());
-                    member.setWorkspaceId(group.getGroupId()); // Adapt field names
+                    member.setWorkspaceId(scope.getGroupId()); // Adapt field names
                     member.setRole("member");
                     member.setJoinedAt(LocalDateTime.now());
 
@@ -213,10 +219,10 @@ public class CustomVortexController {
 
             // MyBatis example:
             // for (InvitationResult result : results) {
-            //     for (InvitationGroup group : result.getGroups()) {
+            //     for (InvitationScope scope : result.getGroups()) {
             //         WorkspaceMember member = new WorkspaceMember();
             //         member.setUserId(user.getUserId());
-            //         member.setWorkspaceId(group.getGroupId());
+            //         member.setWorkspaceId(scope.getGroupId());
             //         member.setRole("member");
             //         member.setJoinedAt(LocalDateTime.now());
             //         workspaceMemberMapper.insert(member);
@@ -225,10 +231,10 @@ public class CustomVortexController {
 
             // JdbcTemplate example:
             // for (InvitationResult result : results) {
-            //     for (InvitationGroup group : result.getGroups()) {
+            //     for (InvitationScope scope : result.getGroups()) {
             //         jdbcTemplate.update(
             //             "INSERT INTO workspace_members (user_id, workspace_id, role, joined_at) VALUES (?, ?, ?, ?)",
-            //             user.getUserId(), group.getGroupId(), "member", LocalDateTime.now()
+            //             user.getUserId(), scope.getGroupId(), "member", LocalDateTime.now()
             //         );
             //     }
             // }
@@ -245,6 +251,7 @@ public class CustomVortexController {
 ```
 
 **Critical - Adapt database logic:**
+
 - Use their actual entity/table names (from discovery)
 - Use their actual field names
 - Use their ORM/database library (Spring Data JPA, MyBatis, JdbcTemplate, etc.)
@@ -306,6 +313,7 @@ curl -X POST http://localhost:8080/api/vortex/jwt \
 ```
 
 Expected response:
+
 ```json
 {
   "jwt": "eyJhbGciOiJIUzI1NiIs..."
@@ -335,6 +343,7 @@ Expected response:
 ## After Implementation Report
 
 List files created/modified:
+
 - Dependency: pom.xml or build.gradle
 - Configuration: src/main/resources/application.yml
 - VortexConfig: src/main/java/com/yourapp/config/VortexSecurityConfiguration.java
@@ -342,6 +351,7 @@ List files created/modified:
 - Database: Accept endpoint creates memberships in [entity/table name]
 
 Confirm:
+
 - SDK dependency added
 - VORTEX_API_KEY configured in application.yml
 - VortexConfig bean created with authenticateUser
@@ -352,11 +362,12 @@ Confirm:
 ## Auto-Configured Endpoints
 
 Spring Boot auto-configuration provides these endpoints (unless overridden):
+
 - `POST /api/vortex/jwt` - Generate JWT for authenticated user
 - `GET /api/vortex/invitations` - Get invitations by target
 - `GET /api/vortex/invitations/{id}` - Get invitation by ID
 - `POST /api/vortex/invitations/accept` - Accept invitations (must override with DB logic)
 - `DELETE /api/vortex/invitations/{id}` - Revoke invitation
 - `POST /api/vortex/invitations/{id}/reinvite` - Resend invitation
-- `GET /api/vortex/invitations/by-group/{type}/{id}` - Get group invitations
-- `DELETE /api/vortex/invitations/by-group/{type}/{id}` - Delete group invitations
+- `GET /api/vortex/invitations/by-scope/{type}/{id}` - Get scope invitations
+- `DELETE /api/vortex/invitations/by-scope/{type}/{id}` - Delete scope invitations

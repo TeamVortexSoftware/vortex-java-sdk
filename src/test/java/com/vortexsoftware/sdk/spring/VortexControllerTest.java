@@ -219,9 +219,9 @@ public class VortexControllerTest {
 
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("GET_GROUP_INVITATIONS", testUser)).thenReturn(true);
-        when(mockClient.getInvitationsByGroup("team", "team-123")).thenReturn(invitations);
+        when(mockClient.getInvitationsByScope("team", "team-123")).thenReturn(invitations);
 
-        ResponseEntity<?> response = controller.getInvitationsByGroup("team", "team-123");
+        ResponseEntity<?> response = controller.getInvitationsByScope("team", "team-123");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();
@@ -233,9 +233,9 @@ public class VortexControllerTest {
     void testDeleteInvitationsByGroup_Success() throws VortexException {
         when(mockConfig.authenticateUser()).thenReturn(testUser);
         when(mockConfig.authorizeOperation("DELETE_GROUP_INVITATIONS", testUser)).thenReturn(true);
-        doNothing().when(mockClient).deleteInvitationsByGroup("team", "team-123");
+        doNothing().when(mockClient).deleteInvitationsByScope("team", "team-123");
 
-        ResponseEntity<?> response = controller.deleteInvitationsByGroup("team", "team-123");
+        ResponseEntity<?> response = controller.deleteInvitationsByScope("team", "team-123");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, Object> body = (Map<String, Object>) response.getBody();

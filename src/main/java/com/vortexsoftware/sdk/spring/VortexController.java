@@ -195,12 +195,12 @@ public class VortexController {
 
     /**
      * Get invitations by group
-     * GET /invitations/by-group/{groupType}/{groupId}
+     * GET /invitations/by-scope/{scopeType}/{scope}
      */
     @GetMapping(VortexRoutes.INVITATIONS_BY_GROUP)
-    public ResponseEntity<?> getInvitationsByGroup(
-            @PathVariable("groupType") String groupType,
-            @PathVariable("groupId") String groupId) {
+    public ResponseEntity<?> getInvitationsByScope(
+            @PathVariable("scopeType") String scopeType,
+            @PathVariable("scope") String scope) {
         try {
             VortexConfig.VortexUser user = config.authenticateUser();
             if (user == null) {
@@ -213,7 +213,7 @@ public class VortexController {
                         .body(Map.of("error", "Not authorized to get group invitations"));
             }
 
-            List<InvitationResult> invitations = vortexClient.getInvitationsByGroup(groupType, groupId);
+            List<InvitationResult> invitations = vortexClient.getInvitationsByScope(scopeType, scope);
             return ResponseEntity.ok(Map.of("invitations", invitations));
 
         } catch (VortexException e) {
@@ -225,12 +225,12 @@ public class VortexController {
 
     /**
      * Delete invitations by group
-     * DELETE /invitations/by-group/{groupType}/{groupId}
+     * DELETE /invitations/by-scope/{scopeType}/{scope}
      */
     @DeleteMapping(VortexRoutes.INVITATIONS_BY_GROUP)
-    public ResponseEntity<?> deleteInvitationsByGroup(
-            @PathVariable("groupType") String groupType,
-            @PathVariable("groupId") String groupId) {
+    public ResponseEntity<?> deleteInvitationsByScope(
+            @PathVariable("scopeType") String scopeType,
+            @PathVariable("scope") String scope) {
         try {
             VortexConfig.VortexUser user = config.authenticateUser();
             if (user == null) {
@@ -243,7 +243,7 @@ public class VortexController {
                         .body(Map.of("error", "Not authorized to delete group invitations"));
             }
 
-            vortexClient.deleteInvitationsByGroup(groupType, groupId);
+            vortexClient.deleteInvitationsByScope(scopeType, scope);
             return ResponseEntity.ok(Map.of("success", true));
 
         } catch (VortexException e) {

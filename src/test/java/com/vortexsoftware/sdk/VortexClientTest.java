@@ -225,17 +225,17 @@ public class VortexClientTest {
 
     @Test
     void testGetInvitationsByGroup() throws VortexException {
-        String groupType = "team";
-        String groupId = "team-123";
+        String scopeType = "team";
+        String scope = "team-123";
 
         // Mock API response
-        stubFor(get(urlPathEqualTo("/api/v1/invitations/by-group/" + groupType + "/" + groupId))
+        stubFor(get(urlPathEqualTo("/api/v1/invitations/by-scope/" + scopeType + "/" + scope))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody("{\"invitations\": [{\"id\": \"inv-123\", \"status\": \"delivered\", \"accountId\": \"acc-123\", \"projectId\": \"proj-123\", \"clickThroughs\": 0, \"deliveryCount\": 1, \"views\": 0, \"deactivated\": false, \"deliveryTypes\": [\"email\"], \"foreignCreatorId\": \"creator-123\", \"invitationType\": \"single_use\", \"createdAt\": \"2023-01-01T00:00:00Z\", \"target\": [], \"groups\": [], \"accepts\": []}]}")));
 
-        List<InvitationResult> results = client.getInvitationsByGroup(groupType, groupId);
+        List<InvitationResult> results = client.getInvitationsByScope(scopeType, scope);
 
         assertNotNull(results);
         assertEquals(1, results.size());
@@ -244,16 +244,16 @@ public class VortexClientTest {
 
     @Test
     void testDeleteInvitationsByGroup() throws VortexException {
-        String groupType = "team";
-        String groupId = "team-123";
+        String scopeType = "team";
+        String scope = "team-123";
 
         // Mock API response
-        stubFor(delete(urlPathEqualTo("/api/v1/invitations/by-group/" + groupType + "/" + groupId))
+        stubFor(delete(urlPathEqualTo("/api/v1/invitations/by-scope/" + scopeType + "/" + scope))
                 .willReturn(aResponse()
                         .withStatus(200)));
 
         // Should not throw exception
-        assertDoesNotThrow(() -> client.deleteInvitationsByGroup(groupType, groupId));
+        assertDoesNotThrow(() -> client.deleteInvitationsByScope(scopeType, scope));
     }
 
     @Test
@@ -306,5 +306,65 @@ public class VortexClientTest {
         User user = new User("user-123", "test@example.com");
         user.setAdminScopes(Arrays.asList("autojoin"));
         return user;
+    }
+
+    // ============ generateToken Tests ============
+
+    @Test
+    void testGenerateToken_MinimalPayload() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload()
+                .setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+        assertFalse(token.contains("="));
+    }
+
+    @Test
+    void testGenerateToken_FullPayload() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload()
+                .setComponent("widget-abc")
+                .setUser(new TokenUser("user-123").setName("Peter").setEmail("peter@example.com"))
+                .setScope("workspace_456")
+                .setVars(Map.of("company_name", "Acme"));
+        String token = client.generateToken(payload);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateToken_WithStringExpiration() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("1h"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateToken_WithNumericExpiration() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions(3600));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateToken_InvalidExpiresInFormat() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> client.generateToken(payload, new GenerateTokenOptions("invalid")));
+    }
+
+    @Test
+    void testGenerateToken_NegativeExpiration() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> client.generateToken(payload, new GenerateTokenOptions(-100)));
+    }
+
+    @Test
+    void testGenerateToken_AllExpirationFormats() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertNotNull(client.generateToken(payload, new GenerateTokenOptions("5m")));
+        assertNotNull(client.generateToken(payload, new GenerateTokenOptions("24h")));
+        assertNotNull(client.generateToken(payload, new GenerateTokenOptions("7d")));
     }
 }
