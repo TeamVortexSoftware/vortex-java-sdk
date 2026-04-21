@@ -4,21 +4,23 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents a group for JWT generation (input).
- * This is a simpler structure than InvitationScope, used for creating JWTs.
- * Supports both 'id' (legacy) and 'scope' (preferred) for backward compatibility.
+ * Represents a scope/group for JWT generation - used to define user's team/org membership in tokens
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Group {
+    /** Scope type (e.g., "team", "organization", "workspace") */
     @JsonProperty("type")
     private String type;
 
+    /** Legacy scope identifier. Use scopeId instead. */
     @JsonProperty("id")
     private String id;
 
+    /** Your internal scope/group identifier (preferred over id) */
     @JsonProperty("scope")
     private String scope;
 
+    /** Display name for the scope (e.g., "Engineering Team") */
     @JsonProperty("name")
     private String name;
 

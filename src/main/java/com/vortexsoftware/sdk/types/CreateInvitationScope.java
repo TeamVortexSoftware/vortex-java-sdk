@@ -4,17 +4,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Group information for creating invitations.
+ * Scope/group information for creating invitations - defines what team/org the invitee will join
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateInvitationScope {
 
+    /** Scope type (e.g., "team", "organization", "workspace") */
     @JsonProperty("type")
     private String type;
 
+    /** Your internal scope/group identifier */
     @JsonProperty("groupId")
     private String scope;
 
+    /** Display name shown to invitees (e.g., "Engineering Team") */
     @JsonProperty("name")
     private String name;
 

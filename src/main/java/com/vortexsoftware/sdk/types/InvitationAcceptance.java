@@ -1,30 +1,35 @@
 package com.vortexsoftware.sdk.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * Represents an accepted invitation
+ * Represents a record of an invitation being accepted
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class InvitationAcceptance {
+    /** Unique identifier for this acceptance record */
     @JsonProperty("id")
     private String id;
 
+    /** Your Vortex account ID */
     @JsonProperty("accountId")
     private String accountId;
 
-    @JsonProperty("projectId")
-    private String projectId;
-
+    /** ISO 8601 timestamp when the invitation was accepted */
     @JsonProperty("acceptedAt")
     private String acceptedAt;
 
+    /** How the recipient was identified: "email" or "phone" */
     @JsonProperty("targetType")
     private String targetType;
 
+    /** The email or phone number of the person who accepted */
     @JsonProperty("targetValue")
     private String targetValue;
 
+    /** Additional identifiers for the accepting user (e.g., external IDs) */
     @JsonProperty("identifiers")
     private Map<String, String> identifiers;
 
@@ -44,14 +49,6 @@ public class InvitationAcceptance {
 
     public void setAccountId(String accountId) {
         this.accountId = accountId;
-    }
-
-    public String getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
     }
 
     public String getAcceptedAt() {
@@ -91,7 +88,6 @@ public class InvitationAcceptance {
         return "InvitationAcceptance{" +
                 "id='" + id + '\'' +
                 ", accountId='" + accountId + '\'' +
-                ", projectId='" + projectId + '\'' +
                 ", acceptedAt='" + acceptedAt + '\'' +
                 ", targetType='" + targetType + '\'' +
                 ", targetValue='" + targetValue + '\'' +

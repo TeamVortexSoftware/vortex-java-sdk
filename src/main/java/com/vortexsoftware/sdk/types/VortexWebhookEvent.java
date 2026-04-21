@@ -5,32 +5,40 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * A Vortex webhook event representing a server-side state change.
+ * A Vortex webhook event representing a server-side state change
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VortexWebhookEvent {
 
+    /** Unique identifier for this webhook event */
     @JsonProperty("id")
     private String id;
 
+    /** Event type (e.g., "invitation.accepted", "member.created") */
     @JsonProperty("type")
     private String type;
 
+    /** ISO 8601 timestamp when the event occurred */
     @JsonProperty("timestamp")
     private String timestamp;
 
+    /** Your Vortex account ID */
     @JsonProperty("accountId")
     private String accountId;
 
+    /** Environment ID (production, staging, etc.) */
     @JsonProperty("environmentId")
     private String environmentId;
 
+    /** Internal: database table that triggered this event */
     @JsonProperty("sourceTable")
     private String sourceTable;
 
+    /** Database operation: "INSERT", "UPDATE", or "DELETE" */
     @JsonProperty("operation")
     private String operation;
 
+    /** Event payload containing the relevant entity data */
     @JsonProperty("data")
     private Map<String, Object> data;
 

@@ -5,28 +5,53 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * Payload for generateToken()
+ * Payload for generateToken() - used to generate secure tokens for Vortex components
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GenerateTokenPayload {
+    /**
+     * The authenticated user who will be using the Vortex component.
+     * Required for most operations to attribute invitations correctly.
+     */
     @JsonProperty("user")
     private TokenUser user;
 
+    /**
+     * Component ID to generate token for (from your Vortex dashboard).
+     * If not specified, uses the default component for your account.
+     */
     @JsonProperty("component")
     private String component;
 
+    /**
+     * Trigger context for the invitation (e.g., "signup", "share-button", "referral-page").
+     * Used for analytics to track which UI elements drive the most invitations.
+     */
     @JsonProperty("trigger")
     private String trigger;
 
+    /**
+     * Embed mode identifier for embedded invitation widgets.
+     * Determines how the component renders in your UI.
+     */
     @JsonProperty("embed")
     private String embed;
 
+    /**
+     * Scope identifier to restrict invitations to a specific team/org/workspace.
+     * Format: "scopeType:scopeId" (e.g., "team:team-123").
+     */
     @JsonProperty("scope")
     private String scope;
 
+    /**
+     * Custom variables to pass to the component for template rendering.
+     * These can be used in email templates and invitation messages.
+     */
     @JsonProperty("vars")
     private Map<String, Object> vars;
 
+    /** Additional properties for forward compatibility */
     private Map<String, Object> additionalProperties;
 
     public GenerateTokenPayload() {}

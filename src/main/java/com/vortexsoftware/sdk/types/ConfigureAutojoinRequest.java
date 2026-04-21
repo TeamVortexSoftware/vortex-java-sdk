@@ -22,19 +22,19 @@ public class ConfigureAutojoinRequest {
     @JsonProperty("domains")
     private List<String> domains;
 
-    @JsonProperty("widgetId")
-    private String widgetId;
+    @JsonProperty("componentId")
+    private String componentId;
 
     @JsonProperty("metadata")
     private Map<String, Object> metadata;
 
     public ConfigureAutojoinRequest() {}
 
-    public ConfigureAutojoinRequest(String scope, String scopeType, List<String> domains, String widgetId) {
+    public ConfigureAutojoinRequest(String scope, String scopeType, List<String> domains, String componentId) {
         this.scope = scope;
         this.scopeType = scopeType;
         this.domains = domains;
-        this.widgetId = widgetId;
+        this.componentId = componentId;
     }
 
     public String getScope() {
@@ -69,12 +69,12 @@ public class ConfigureAutojoinRequest {
         this.domains = domains;
     }
 
-    public String getWidgetId() {
-        return widgetId;
+    public String getComponentId() {
+        return componentId;
     }
 
-    public void setWidgetId(String widgetId) {
-        this.widgetId = widgetId;
+    public void setComponentId(String componentId) {
+        this.componentId = componentId;
     }
 
     public Map<String, Object> getMetadata() {

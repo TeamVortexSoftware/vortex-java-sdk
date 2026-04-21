@@ -9,9 +9,9 @@ import java.util.List;
  *
  * Required fields:
  * - id: User's unique identifier in your system
- * - email: User's email address
  *
  * Optional fields:
+ * - email: User's email address (recommended for invitation attribution and reply-to)
  * - name: User's display name (max 200 characters)
  * - avatarUrl: User's avatar URL (must be HTTPS, max 2000 characters)
  * - adminScopes: List of admin scopes (e.g., ["autojoin"])
@@ -19,6 +19,10 @@ import java.util.List;
  *
  * Example:
  * <pre>{@code
+ * // Minimal (id only)
+ * User user = new User("user-123");
+ *
+ * // With email (recommended)
  * User user = new User("user-123", "user@example.com");
  * user.setName("Jane Doe");
  * user.setAvatarUrl("https://example.com/avatars/jane.jpg");
@@ -28,17 +32,19 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
+    /** Your internal user ID (required for invitation attribution) */
     @JsonProperty("id")
     private String id;
 
+    /** User's email address (used for identification and reply-to) */
     @JsonProperty("email")
     private String email;
 
-    /** User's display name (preferred) */
+    /** Display name shown to recipients (e.g., "John invited you") */
     @JsonProperty("name")
     private String name;
 
-    /** User's avatar URL (preferred) */
+    /** Avatar URL displayed in invitation emails and widgets (must be HTTPS) */
     @JsonProperty("avatarUrl")
     private String avatarUrl;
 
@@ -52,9 +58,11 @@ public class User {
     @Deprecated
     private String userAvatarUrl;
 
+    /** List of scopes where user has admin privileges (e.g., ["autojoin"]) */
     @JsonProperty("adminScopes")
     private List<String> adminScopes;
 
+    /** Restrict invitations to these email domains (e.g., ["acme.com"]) */
     @JsonProperty("allowedEmailDomains")
     private List<String> allowedEmailDomains;
 
@@ -64,10 +72,19 @@ public class User {
     public User() {}
 
     /**
-     * Create a new User with required fields
+     * Create a new User with only the required id field
+     *
+     * @param id User's unique identifier in your system
+     */
+    public User(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Create a new User with id and email
      *
      * @param id User's unique identifier
-     * @param email User's email address
+     * @param email User's email address (optional but recommended for reply-to)
      */
     public User(String id, String email) {
         this.id = id;

@@ -4,22 +4,24 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Information about the user creating the invitation (the inviter).
+ * Information about the user sending the invitation - used for attribution and display
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Inviter {
 
+    /** Your internal user ID for the inviter (required for attribution) */
     @JsonProperty("userId")
     private String userId;
 
+    /** Inviter's email address (used for reply-to and identification) */
     @JsonProperty("userEmail")
     private String userEmail;
 
-    /** Display name of the inviter (preferred) */
+    /** Display name shown to recipients (e.g., "John invited you to...") */
     @JsonProperty("name")
     private String name;
 
-    /** Avatar URL of the inviter (preferred) */
+    /** Avatar URL displayed in invitation emails and widgets */
     @JsonProperty("avatarUrl")
     private String avatarUrl;
 

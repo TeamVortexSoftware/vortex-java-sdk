@@ -5,30 +5,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * JWT payload for Vortex token generation
- *
- * Supports both new simplified format (userEmail, userIsAutojoinAdmin) and
- * legacy format (identifiers, groups, role) for backward compatibility.
+ * JWT payload for Vortex token generation - the claims encoded in the signed token
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class JWTPayload {
+    /** Your internal user ID (required - used for invitation attribution) */
     @JsonProperty("userId")
     private String userId;
 
-    // New simplified fields (preferred)
+    /** User's email address (preferred format for user identification) */
     @JsonProperty("userEmail")
     private String userEmail;
 
+    /** Whether user can manage autojoin settings for their scopes */
     @JsonProperty("userIsAutojoinAdmin")
     private Boolean userIsAutojoinAdmin;
 
-    // Legacy fields (deprecated but still supported for backward compatibility)
+    /** Legacy: List of user identifiers. Use userEmail instead. */
     @JsonProperty("identifiers")
     private List<Identifier> identifiers;
 
+    /** Legacy: List of groups/scopes. Use scope parameter in generateToken instead. */
     @JsonProperty("groups")
     private List<Group> groups;
 
+    /** Legacy: User role. No longer used. */
     @JsonProperty("role")
     private String role;
 

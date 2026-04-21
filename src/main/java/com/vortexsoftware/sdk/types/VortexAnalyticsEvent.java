@@ -5,50 +5,64 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
- * An analytics event representing client-side behavioral telemetry.
+ * An analytics event representing client-side behavioral telemetry from Vortex widgets
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VortexAnalyticsEvent {
 
+    /** Unique identifier for this analytics event */
     @JsonProperty("id")
     private String id;
 
+    /** Event name (e.g., "widget.opened", "invite.sent", "link.clicked") */
     @JsonProperty("name")
     private String name;
 
+    /** Your Vortex account ID */
     @JsonProperty("accountId")
     private String accountId;
 
+    /** Organization ID if using multi-org setup */
     @JsonProperty("organizationId")
     private String organizationId;
 
+    /** Project ID the event belongs to */
     @JsonProperty("projectId")
     private String projectId;
 
+    /** Environment ID (production, staging, etc.) */
     @JsonProperty("environmentId")
     private String environmentId;
 
+    /** Deployment ID the event is associated with */
     @JsonProperty("deploymentId")
     private String deploymentId;
 
+    /** Widget configuration ID that generated this event */
     @JsonProperty("widgetConfigurationId")
     private String widgetConfigurationId;
 
+    /** Your internal user ID who triggered the event */
     @JsonProperty("foreignUserId")
     private String foreignUserId;
 
+    /** Client session ID for grouping related events */
     @JsonProperty("sessionId")
     private String sessionId;
 
+    /** Event-specific payload data */
     @JsonProperty("payload")
     private Map<String, Object> payload;
 
+    /** Platform: "web", "ios", "android", "react-native" */
     @JsonProperty("platform")
     private String platform;
 
+    /** A/B test segmentation identifier */
     @JsonProperty("segmentation")
     private String segmentation;
 
+    /** ISO 8601 timestamp when the event occurred */
     @JsonProperty("timestamp")
     private String timestamp;
 

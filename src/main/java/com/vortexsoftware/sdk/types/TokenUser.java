@@ -5,25 +5,51 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * User data for token generation
+ * User data for token generation - represents the authenticated user sending invitations
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TokenUser {
+    /**
+     * Unique identifier for the user in your system.
+     * Used to attribute invitations and track referral chains.
+     */
     @JsonProperty("id")
     private String id;
 
+    /**
+     * Display name shown to invitation recipients (e.g., "John invited you").
+     * If not provided, falls back to email or a generic message.
+     */
     @JsonProperty("name")
     private String name;
 
+    /**
+     * User's email address. Used for reply-to in invitation emails
+     * and shown to recipients so they know who invited them.
+     */
     @JsonProperty("email")
     private String email;
 
+    /**
+     * URL to user's avatar image. Displayed in invitation emails
+     * and widgets to personalize the invitation experience.
+     */
     @JsonProperty("avatarUrl")
     private String avatarUrl;
 
+    /**
+     * List of scope IDs where this user has admin privileges.
+     * Admins can manage invitations and view analytics for these scopes.
+     * Format: ["scopeType:scopeId", ...] (e.g., ["team:team-123", "org:org-456"]).
+     */
     @JsonProperty("adminScopes")
     private List<String> adminScopes;
 
+    /**
+     * Restrict invitations to specific email domains.
+     * If set, users can only invite people with emails matching these domains.
+     * Useful for enterprise accounts (e.g., ["acme.com", "acme.co.uk"]).
+     */
     @JsonProperty("allowedEmailDomains")
     private List<String> allowedEmailDomains;
 

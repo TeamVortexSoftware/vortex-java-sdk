@@ -3,13 +3,14 @@ package com.vortexsoftware.sdk.types;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents an identifier for a user (email, sms, etc.)
- * Used for JWT generation.
+ * Represents an identifier for a user - used in JWT generation to link user across channels
  */
 public class Identifier {
+    /** Identifier type: "email", "phone", "username", or custom type */
     @JsonProperty("type")
     private String type;
 
+    /** The identifier value (email address, phone number, etc.) */
     @JsonProperty("value")
     private String value;
 

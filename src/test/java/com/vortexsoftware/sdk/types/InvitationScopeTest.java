@@ -50,6 +50,7 @@ public class InvitationScopeTest {
                 "id": "inv-123",
                 "accountId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
                 "clickThroughs": 5,
+                "formSubmissionData": {},
                 "configurationAttributes": {},
                 "attributes": {},
                 "createdAt": "2025-01-27T12:00:00.000Z",

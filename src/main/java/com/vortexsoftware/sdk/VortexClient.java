@@ -106,16 +106,11 @@ public class VortexClient {
      */
     /**
      * Sign a user object for use with the widget signature prop.
-     *
+     * @vortex.category authentication
+     * @vortex.since 0.5.0
      * @param user Map with "id", "email", and optional user fields
      * @return Signature string in "kid:hexDigest" format
      * @throws VortexException if API key is invalid or signing fails
-     *
-     * @example
-     * <pre>{@code
-     * VortexClient client = new VortexClient(System.getenv("VORTEX_API_KEY"));
-     * String signature = client.sign(Map.of("id", "user-123", "email", "user@example.com"));
-     * }</pre>
      */
     public String sign(Map<String, Object> user) throws VortexException {
         String[] parts = apiKey.split("\\.");
@@ -201,7 +196,19 @@ public class VortexClient {
         return new UUID(msb, lsb);
     }
 
+    /**
+     * Generate a JWT using the same algorithm as the Node.js SDK
+     * @vortex.category authentication
+     * @vortex.since 0.3.0
+     * @param params Map containing "user" key with User object
+     * @return JWT token string
+     * @throws VortexException if JWT generation fails
+     */
     public String generateJwt(Map<String, Object> params) throws VortexException {
+        return generateJwt(params, null);
+    }
+
+    public String generateJwt(Map<String, Object> params, GenerateTokenOptions options) throws VortexException {
         try {
             // Extract user from params
             if (params == null || !params.containsKey("user")) {
@@ -229,9 +236,10 @@ public class VortexClient {
             byte[] idBytes = Base64.getUrlDecoder().decode(encodedId);
             String id = bytesToUUID(idBytes);
 
-            // Step 3: Calculate expiration (1 hour from now, same as Node.js)
+            // Step 3: Calculate expiration (default: 30 days, configurable via options)
             long now = Instant.now().getEpochSecond();
-            long expires = now + 3600; // 1 hour
+            long expiresInSeconds = (options != null && options.getExpiresIn() != null) ? parseExpiresIn(options.getExpiresIn()) : 2592000; // 30 days
+            long expires = now + expiresInSeconds;
 
             // Step 4: Derive signing key from API key + ID (same HMAC process as Node.js)
             Mac hmacSha256 = Mac.getInstance("HmacSHA256");
@@ -362,6 +370,11 @@ public class VortexClient {
 
     /**
      * Get invitations by target (email, username, phoneNumber)
+     * @vortex.category invitations
+     * @vortex.since 0.1.0
+     * @param targetType Type of target (email, phone, etc.)
+     * @param targetValue The target value
+     * @return List of invitations
      */
     public List<InvitationResult> getInvitationsByTarget(String targetType, String targetValue) throws VortexException {
         Map<String, String> queryParams = new HashMap<>();
@@ -374,6 +387,17 @@ public class VortexClient {
 
     /**
      * Get a specific invitation by ID
+     *
+     * <pre>{@code
+     * InvitationResult invitation = client.getInvitation("inv-123");
+     * System.out.println("Status: " + invitation.getStatus());
+     * }</pre>
+     *
+     * @vortex.category invitations
+     * @vortex.since 0.1.0
+     * @vortex.primary
+     * @param invitationId The invitation ID
+     * @return The invitation details
      */
     public InvitationResult getInvitation(String invitationId) throws VortexException {
         return apiRequest("GET", "/api/v1/invitations/" + invitationId, null, null, new TypeReference<InvitationResult>() {});
@@ -381,6 +405,9 @@ public class VortexClient {
 
     /**
      * Revoke (delete) an invitation
+     * @vortex.category invitations
+     * @vortex.since 0.1.0
+     * @param invitationId The invitation ID to revoke
      */
     public void revokeInvitation(String invitationId) throws VortexException {
         apiRequest("DELETE", "/api/v1/invitations/" + invitationId, null, null, new TypeReference<Void>() {});
@@ -518,31 +545,42 @@ public class VortexClient {
     /**
      * Accept a single invitation (recommended method)
      *
-     * <p>This is the recommended method for accepting invitations.</p>
-     *
-     * @param invitationId Single invitation ID to accept
-     * @param user User object with email and/or phone
-     * @return InvitationResult The accepted invitation result
-     * @throws VortexException If the request fails
-     *
      * <pre>{@code
-     * AcceptUser user = new AcceptUser("user@example.com");
+     * AcceptUser user = new AcceptUser()
+     *     .setEmail("user@example.com")
+     *     .setName("John Doe");
      * InvitationResult result = client.acceptInvitation("inv-123", user);
      * }</pre>
+     *
+     * @vortex.category invitations
+     * @vortex.since 0.6.0
+     * @vortex.primary
+     * @param invitationId Single invitation ID to accept
+     * @param user User object with email and/or phone
+     * @return The accepted invitation result
      */
     public InvitationResult acceptInvitation(String invitationId, AcceptUser user) throws VortexException {
         return acceptInvitations(List.of(invitationId), user);
     }
 
     /**
-     * Delete all invitations for a specific group
+     * Delete all invitations for a specific scope
+     * @vortex.category invitations
+     * @vortex.since 0.4.0
+     * @param scopeType The scope type (organization, team, etc.)
+     * @param scope The scope identifier
      */
     public void deleteInvitationsByScope(String scopeType, String scope) throws VortexException {
         apiRequest("DELETE", "/api/v1/invitations/by-scope/" + scopeType + "/" + scope, null, null, new TypeReference<Void>() {});
     }
 
     /**
-     * Get all invitations for a specific group
+     * Get all invitations for a specific scope
+     * @vortex.category invitations
+     * @vortex.since 0.4.0
+     * @param scopeType The scope type (organization, team, etc.)
+     * @param scope The scope identifier
+     * @return List of invitations for the scope
      */
     public List<InvitationResult> getInvitationsByScope(String scopeType, String scope) throws VortexException {
         InvitationResponse response = apiRequest("GET", "/api/v1/invitations/by-scope/" + scopeType + "/" + scope, null, null, new TypeReference<InvitationResponse>() {});
@@ -551,6 +589,10 @@ public class VortexClient {
 
     /**
      * Reinvite a user (send invitation again)
+     * @vortex.category invitations
+     * @vortex.since 0.2.0
+     * @param invitationId The invitation ID to reinvite
+     * @return The reinvited invitation result
      */
     public InvitationResult reinvite(String invitationId) throws VortexException {
         return apiRequest("POST", "/api/v1/invitations/" + invitationId + "/reinvite", null, null, new TypeReference<InvitationResult>() {});
@@ -635,19 +677,11 @@ public class VortexClient {
 
     /**
      * Get autojoin domains configured for a specific scope
-     *
-     * <p>Example:</p>
-     * <pre>{@code
-     * AutojoinDomainsResponse response = client.getAutojoinDomains("organization", "acme-org");
-     * for (AutojoinDomain domain : response.getAutojoinDomains()) {
-     *     System.out.println("Domain: " + domain.getDomain());
-     * }
-     * }</pre>
-     *
+     * @vortex.category autojoin
+     * @vortex.since 0.6.0
      * @param scopeType The type of scope (e.g., "organization", "team", "project")
      * @param scope The scope identifier (customer's group ID)
-     * @return AutojoinDomainsResponse with autojoin domains and associated invitation
-     * @throws VortexException if the API request fails
+     * @return AutojoinDomainsResponse with autojoin domains and invitation
      */
     public AutojoinDomainsResponse getAutojoinDomains(String scopeType, String scope) throws VortexException {
         String encodedScopeType = java.net.URLEncoder.encode(scopeType, StandardCharsets.UTF_8);
@@ -658,26 +692,10 @@ public class VortexClient {
 
     /**
      * Configure autojoin domains for a specific scope
-     *
-     * <p>This endpoint syncs autojoin domains - it will add new domains, remove domains
-     * not in the provided list, and deactivate the autojoin invitation if all domains
-     * are removed (empty array).</p>
-     *
-     * <p>Example:</p>
-     * <pre>{@code
-     * ConfigureAutojoinRequest request = new ConfigureAutojoinRequest(
-     *     "acme-org",
-     *     "organization",
-     *     Arrays.asList("acme.com", "acme.org"),
-     *     "widget-123"
-     * );
-     * request.setScopeName("Acme Corporation");
-     * AutojoinDomainsResponse response = client.configureAutojoin(request);
-     * }</pre>
-     *
+     * @vortex.category autojoin
+     * @vortex.since 0.6.0
      * @param request The configure autojoin request
-     * @return AutojoinDomainsResponse with updated autojoin domains and associated invitation
-     * @throws VortexException if the API request fails
+     * @return AutojoinDomainsResponse with updated autojoin domains
      */
     public AutojoinDomainsResponse configureAutojoin(ConfigureAutojoinRequest request) throws VortexException {
         if (request == null) {
@@ -689,8 +707,8 @@ public class VortexClient {
         if (request.getScopeType() == null || request.getScopeType().isEmpty()) {
             throw new VortexException("scopeType is required");
         }
-        if (request.getWidgetId() == null || request.getWidgetId().isEmpty()) {
-            throw new VortexException("widgetId is required");
+        if (request.getComponentId() == null || request.getComponentId().isEmpty()) {
+            throw new VortexException("componentId is required");
         }
 
         return apiRequest("POST", "/api/v1/invitations/autojoin", request, null, new TypeReference<AutojoinDomainsResponse>() {});
@@ -761,6 +779,9 @@ public class VortexClient {
 
     /**
      * Generate a signed token for use with Vortex widgets
+     * @vortex.category authentication
+     * @vortex.since 0.8.0
+     * @vortex.primary
      * @param payload Data to sign (user, component, scope, vars, etc.)
      * @return Signed JWT token string
      */
@@ -770,6 +791,8 @@ public class VortexClient {
 
     /**
      * Generate a signed token for use with Vortex widgets
+     * @vortex.category authentication
+     * @vortex.since 0.8.0
      * @param payload Data to sign (user, component, scope, vars, etc.)
      * @param options Optional configuration (expiresIn)
      * @return Signed JWT token string
@@ -786,7 +809,7 @@ public class VortexClient {
             byte[] uuidBytes = Base64.getUrlDecoder().decode(parts[1]);
             String kid = bytesToUUID(uuidBytes);
 
-            long expiresInSeconds = 5L * 60L;
+            long expiresInSeconds = 30L * 24L * 60L * 60L; // Default 30 days
             if (options != null && options.getExpiresIn() != null) {
                 expiresInSeconds = parseExpiresIn(options.getExpiresIn());
             }

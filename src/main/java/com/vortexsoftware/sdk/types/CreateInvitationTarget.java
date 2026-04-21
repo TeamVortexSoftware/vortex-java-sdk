@@ -4,22 +4,24 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Target for creating an invitation.
+ * Target recipient when creating an invitation
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreateInvitationTarget {
 
+    /** Delivery channel: EMAIL, PHONE, SHARE (link), or INTERNAL (in-app) */
     @JsonProperty("type")
     private CreateInvitationTargetType type;
 
+    /** Target address: email, phone number (with country code), or internal user ID */
     @JsonProperty("value")
     private String value;
 
-    /** Display name of the person being invited */
+    /** Display name of the recipient (shown in invitation emails and UI) */
     @JsonProperty("name")
     private String name;
 
-    /** Avatar URL for the person being invited (for display in invitation lists) */
+    /** Avatar URL for the recipient (displayed in invitation lists) */
     @JsonProperty("avatarUrl")
     private String avatarUrl;
 

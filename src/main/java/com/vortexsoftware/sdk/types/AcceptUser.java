@@ -24,21 +24,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AcceptUser {
+    /**
+     * Email address of the user accepting the invitation.
+     * At least one of email or phone is required.
+     */
     @JsonProperty("email")
     private String email;
 
+    /**
+     * Phone number of the user accepting the invitation.
+     * At least one of email or phone is required. Include country code (e.g., "+1555123456").
+     */
     @JsonProperty("phone")
     private String phone;
 
+    /**
+     * Display name of the accepting user.
+     * Used in notifications to the inviter (e.g., "John Doe accepted your invitation").
+     */
     @JsonProperty("name")
     private String name;
 
     /**
-     * Whether the accepting user is an existing user in your system.
-     * Set to true if the user was already registered before accepting the invitation.
-     * Set to false if this is a new user signup.
-     * Leave as null if unknown.
-     * Used for analytics to track new vs existing user conversions.
+     * Whether the accepting user was already registered in your system.
+     * Set to true for existing users, false for new signups, null if unknown.
+     * Used for analytics to track new vs existing user conversion rates.
      */
     @JsonProperty("isExisting")
     private Boolean isExisting;

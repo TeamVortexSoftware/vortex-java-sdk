@@ -1,488 +1,784 @@
-# Vortex Java SDK
+# vortex-java-sdk
 
-A comprehensive Java SDK for integrating with the Vortex API, providing invitation management and JWT generation with full compatibility with React providers.
+<!-- AUTO-GENERATED FROM SDK MANIFEST — DO NOT EDIT DIRECTLY -->
 
-## Features
+![Version](https://img.shields.io/badge/version-1.20.0-blue)
+![Language](https://img.shields.io/badge/language-java-green)
 
-- 🔐 **JWT Generation**: Same algorithm as Node.js SDK for perfect compatibility
-- 📧 **Invitation Management**: Complete CRUD operations for invitations
-- 👥 **Scope Operations**: Manage invitations by scope
-- 🚀 **Spring Boot Integration**: Auto-configuration and ready-to-use controllers
-- 🧪 **Comprehensive Testing**: Full test coverage with WireMock integration
-- 📱 **React Provider Compatible**: Same route structure as other SDKs
+**Invitation infrastructure for modern apps**
 
-### Invitation Delivery Types
+Vortex handles the complete invitation lifecycle — sending invites via email/SMS/share links, tracking clicks and conversions, managing referral programs, and optimizing your invitation flows with A/B testing.
+[Learn more about Vortex →](https://tryvortex.com)
 
-Vortex supports multiple delivery methods for invitations:
+## Why This SDK?
 
-- **`email`** - Email invitations sent by Vortex (includes reminders and nudges)
-- **`phone`** - Phone invitations sent by the user/customer
-- **`share`** - Shareable invitation links for social sharing
-- **`internal`** - Internal invitations managed entirely by your application
-  - No email/SMS communication triggered by Vortex
-  - Target value can be any customer-defined identifier (UUID, string, number)
-  - Useful for in-app invitation flows where you handle the delivery
-  - Example use case: In-app notifications, dashboard invites, etc.
+This backend SDK securely signs user data for Vortex components. Your API key stays on your server, while the signed token is passed to the frontend where Vortex components render the invitation UI.
 
-## Quick Start
+- Keep your API key secure — it never touches the browser
+- Sign user identity for attribution — know who sent each invitation
+- Control what data components can access via scoped tokens
+- Verify webhook signatures for secure event handling
 
-### Maven Dependency
+## How It Works
 
-Add to your `pom.xml`:
+Vortex uses a split architecture: your backend signs tokens with the SDK, and your frontend renders components that use those tokens to securely interact with Vortex.
 
-```xml
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Your Server   │     │  User Browser   │     │  Vortex Cloud   │
+│    (this SDK)   │     │   (component)   │     │                 │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         │  1. generateToken()   │                       │
+         │◄──────────────────────│                       │
+         │                       │                       │
+         │  2. Return token      │                       │
+         │──────────────────────►│                       │
+         │                       │                       │
+         │                       │  3. Component calls   │
+         │                       │     API with token    │
+         │                       │──────────────────────►│
+         │                       │                       │
+         │                       │  4. Render UI,        │
+         │                       │     send invitations  │
+         │                       │◄──────────────────────│
+         │                       │                       │
+```
+
+### Integration Flow
+
+**1. Install the backend SDK** `[backend]`
+
+Add this SDK to your Java project
+
+```java
 <dependency>
-    <groupId>com.vortexsoftware</groupId>
-    <artifactId>vortex-java-sdk</artifactId>
-    <version>1.0.0</version>
+  <groupId>com.vortexsoftware</groupId>
+  <artifactId>vortex-java-sdk</artifactId>
 </dependency>
 ```
 
-### Basic Usage
+**2. Initialize the client** `[backend]`
+
+Create a Vortex client with your API key (keep this on the server!)
 
 ```java
 import com.vortexsoftware.sdk.VortexClient;
-import com.vortexsoftware.sdk.types.*;
-import java.util.Arrays;
-import java.util.List;
 
-// Create client
-VortexClient client = new VortexClient("your-api-key-here");
-
-// Generate JWT with user profile
-User user = new User.Builder()
-    .id("user-123")
-    .email("user@example.com")
-    .name("Jane Doe")                                    // Optional: user's display name
-    .avatarUrl("https://example.com/avatars/jane.jpg")  // Optional: user's avatar URL
-    .adminScopes(Arrays.asList("autojoin"))             // Optional: grants autojoin admin privileges
-    .build();
-
-String jwt = client.generateJwt(user, null);
-
-// Get invitations by target
-List<InvitationResult> invitations = client.getInvitationsByTarget("email", "user@example.com");
-
-// Close client when done
-client.close();
+VortexClient client = new VortexClient(System.getenv("VORTEX_API_KEY"));
 ```
 
-### Spring Boot Integration
+**3. Generate a token for the current user** `[backend]`
 
-Add to your `application.yml`:
-
-```yaml
-vortex:
-  api:
-    key: your-api-key-here
-    base-url: https://api.vortexsoftware.com # optional
-```
-
-The SDK will auto-configure and provide these endpoints:
-
-- `POST /api/vortex/jwt` - Generate JWT
-- `GET /api/vortex/invitations` - Get invitations by target
-- `GET /api/vortex/invitations/{id}` - Get specific invitation
-- `DELETE /api/vortex/invitations/{id}` - Revoke invitation
-- `POST /api/vortex/invitations/accept` - Accept invitations
-- `GET /api/vortex/invitations/by-scope/{type}/{scope}` - Get scope invitations
-- `DELETE /api/vortex/invitations/by-scope/{type}/{scope}` - Delete scope invitations
-- `POST /api/vortex/invitations/{id}/reinvite` - Reinvite user
-
-### Custom Spring Configuration
+When a user loads a page with a Vortex component, generate a signed token on your server
 
 ```java
-@Configuration
-public class VortexConfiguration {
-
-    @Bean
-    public VortexConfig vortexConfig() {
-        return new VortexConfig() {
-            @Override
-            public VortexUser authenticateUser() {
-                // Extract user from security context
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                if (auth == null || !auth.isAuthenticated()) {
-                    return null;
-                }
-
-                // Convert to VortexUser with new format
-                return new VortexUser(
-                    auth.getName(),
-                    getUserEmail(auth),
-                    isAutojoinAdmin(auth)
-                );
-            }
-
-            @Override
-            public boolean authorizeOperation(String operation, VortexUser user) {
-                // Implement your authorization logic
-                return user != null && hasPermission(user, operation);
-            }
-        };
-    }
-}
-```
-
-## API Reference
-
-### VortexClient Methods
-
-#### JWT Generation
-
-```java
-public String generateJwt(User user, Map<String, Object> extra) throws VortexException
-```
-
-Generates a JWT token with the following structure:
-
-- User ID and email (required)
-- Name and avatar URL (optional) - user profile information
-- Admin scopes (optional) - full `adminScopes` array is included in JWT payload
-- Additional properties from `extra` parameter
-- Expiration (1 hour from generation)
-
-Example:
-
-```java
-// Generate JWT with user profile
-User user = new User.Builder()
-    .id("user-123")
-    .email("user@example.com")
-    .name("Jane Doe")                                    // Optional: max 200 chars
-    .avatarUrl("https://example.com/avatars/jane.jpg")  // Optional: HTTPS URL, max 2000 chars
-    .adminScopes(Arrays.asList("autojoin"))             // Optional: grants admin privileges
-    .build();
-
-String jwt = client.generateJwt(user, null);
-```
-
-Uses the same algorithm as other Vortex SDKs for perfect cross-platform compatibility.
-
-#### Generate Token (Flexible Payload Signing)
-
-```java
-public String generateToken(GenerateTokenPayload payload) throws VortexException
-public String generateToken(GenerateTokenPayload payload, GenerateTokenOptions options) throws VortexException
-```
-
-Generates a signed JWT token for use with Vortex widgets. This method is more flexible than `generateJwt` and allows you to sign arbitrary payload data.
-
-**Basic usage:**
-
-```java
-GenerateTokenPayload payload = new GenerateTokenPayload()
-    .setUser(new GenerateTokenUser("user-123"));
-String token = client.generateToken(payload);
-```
-
-**Full payload:**
-
-```java
-GenerateTokenPayload payload = new GenerateTokenPayload()
-    .setComponent("widget-abc")
-    .setUser(new GenerateTokenUser("user-123").setName("Peter").setEmail("peter@example.com"))
-    .setScope("workspace_456")
-    .setVars(Map.of("company_name", "Acme"));
-String token = client.generateToken(payload);
-```
-
-**Custom expiration (default is 5 minutes):**
-
-```java
-GenerateTokenOptions options = new GenerateTokenOptions("1h");  // or new GenerateTokenOptions(3600)
-String token = client.generateToken(payload, options);
-```
-
-#### Invitation Management
-
-```java
-// Get invitations by target
-public List<InvitationResult> getInvitationsByTarget(String targetType, String targetValue)
-
-// Get specific invitation
-public InvitationResult getInvitation(String invitationId)
-
-// Revoke invitation
-public void revokeInvitation(String invitationId)
-
-// Accept an invitation
-public InvitationResult acceptInvitation(String invitationId, AcceptUser user)
-
-// Accept with isExisting tracking (new vs existing user)
-AcceptUser user = new AcceptUser("user@example.com");
-user.setIsExisting(false); // false = new signup, true = existing user
-InvitationResult result = client.acceptInvitation("inv-123", user);
-
-// Reinvite user
-public InvitationResult reinvite(String invitationId)
-
-// Sync internal invitation action (accept or decline)
-public SyncInternalInvitationResult syncInternalInvitation(
-    String creatorId,      // The inviter's user ID in your system
-    String targetValue,    // The invitee's user ID in your system
-    String action,         // "accepted" or "declined"
-    String componentId     // The widget component UUID
-)
-```
-
-**Sync Internal Invitation Example:**
-
-If you're using `internal` delivery type invitations and managing the invitation flow within your own application, you can sync invitation decisions back to Vortex when users accept or decline invitations in your system.
-
-```java
-// Sync an internal invitation action
-SyncInternalInvitationResult result = client.syncInternalInvitation(
-    "user-123",           // creatorId - The inviter's user ID
-    "user-456",           // targetValue - The invitee's user ID
-    "accepted",           // action - "accepted" or "declined"
-    "component-uuid"      // componentId - The widget component UUID
+String token = client.generateToken(
+    new GenerateTokenPayload().setUser(
+        new TokenUser().setId(currentUser.getId())
+    )
 );
-
-System.out.println("Processed: " + result.getProcessed());
-System.out.println("Invitation IDs: " + result.getInvitationIds());
 ```
 
-**Use cases:**
+**4. Pass the token to your frontend** `[backend]`
 
-- You handle invitation delivery through your own in-app notifications or UI
-- Users accept/decline invitations within your application
-- You need to keep Vortex updated with the invitation status
-
-#### Scope Operations
+Include the token in your page response or API response
 
 ```java
-// Get invitations by scope
-public List<InvitationResult> getInvitationsByScope(String scopeType, String scope)
-
-// Delete all invitations for a scope
-public void deleteInvitationsByScope(String scopeType, String scope)
+response.put("vortexToken", token);
 ```
 
-### Types
+**5. Render a Vortex component with the token** `[frontend]`
 
-#### User
+Use the React/Angular/Web Component with the token
 
-User data for JWT generation with id, email, and optional adminScopes.
+```java
+import { VortexInvite } from "@teamvortexsoftware/vortex-react";
 
-#### InvitationResult
+<VortexInvite token={vortexToken} />
+```
 
-Complete invitation data with status, delivery information, and metadata.
+**6. Vortex handles the rest** `[vortex]`
 
-#### InvitationTarget
+The component securely communicates with Vortex servers, displays the invitation UI, sends emails/SMS, tracks conversions, and reports analytics
 
-Represents invitation targets (email, SMS, etc.).
+### Security Model
 
-#### InvitationScope
+> ⚠️ **Important:** Your Vortex API key is a secret that grants full access to your account. It must never be exposed to browsers or client-side code.
 
-Scope membership information.
+By signing tokens on your server, you:
 
-#### AcceptInvitationRequest
+- Keep your API key secret (it never leaves your server)
+- Control exactly what user data is shared with components
+- Ensure invitations are attributed to real, authenticated users
+- Prevent abuse — users can only send invitations as themselves
 
-Request payload for accepting invitations.
+#### When Signing is Optional
 
-## Route Compatibility
+Token signing is controlled by your component configuration in the Vortex dashboard.
 
-The Java SDK provides the exact same route structure as other SDKs:
+---
 
-| Route                                   | Method     | Purpose                         |
-| --------------------------------------- | ---------- | ------------------------------- |
-| `/jwt`                                  | POST       | Generate JWT                    |
-| `/invitations`                          | GET        | Get invitations by target       |
-| `/invitations/{id}`                     | GET/DELETE | Get/revoke specific invitation  |
-| `/invitations/accept`                   | POST       | Accept invitations              |
-| `/invitations/by-scope/{type}/{scope}`  | GET/DELETE | Scope operations                |
-| `/invitations/{id}/reinvite`            | POST       | Reinvite user                   |
-| `/invitations/sync-internal-invitation` | POST       | Sync internal invitation action |
+## Quick Start
 
-This ensures perfect compatibility with:
+Generate a secure token for Vortex components
 
-- React providers
-- Frontend applications
-- Cross-platform consistency
+```java
+VortexClient client = new VortexClient(System.getenv("VORTEX_API_KEY"));
 
-## Configuration
+GenerateTokenPayload payload = new GenerateTokenPayload()
+    .setUser(new TokenUser().setId("user-123").setEmail("user@example.com"));
+
+String token = client.generateToken(payload);
+```
+
+## Installation
+
+```bash
+<dependency>
+  <groupId>com.vortexsoftware</groupId>
+  <artifactId>vortex-java-sdk</artifactId>
+</dependency>
+```
+
+<details>
+<summary>Other package managers</summary>
+
+**gradle:**
+
+```bash
+implementation 'com.vortexsoftware:vortex-java-sdk'
+```
+
+</details>
+
+## Initialization
+
+```java
+VortexClient client = new VortexClient(System.getenv("VORTEX_API_KEY"));
+```
 
 ### Environment Variables
 
-- `VORTEX_API_BASE_URL` - Custom API base URL (optional)
+| Variable         | Required | Description         |
+| ---------------- | -------- | ------------------- |
+| `VORTEX_API_KEY` | ✓        | Your Vortex API key |
 
-### Spring Boot Properties
+## Core Methods
 
-```yaml
-vortex:
-  api:
-    key: your-api-key-here # Required
-    base-url: custom-url # Optional
-```
+These are the methods you'll use most often.
 
-## Error Handling
+### `generateToken()`
 
-All SDK methods throw `VortexException` for API errors:
+Generate a signed token for use with Vortex widgets
 
-```java
-try {
-    String jwt = client.generateJWT(payload);
-} catch (VortexException e) {
-    logger.error("Failed to generate JWT", e);
-    // Handle error
-}
-```
-
-## Testing
-
-The SDK includes comprehensive tests using JUnit 5 and WireMock:
-
-```bash
-mvn test
-```
-
-Test coverage includes:
-
-- JWT generation algorithms
-- All API methods
-- Error handling
-- Spring Boot integration
-- Mock API responses
-
-## JWT Algorithm Compatibility
-
-The Java SDK uses the **exact same JWT generation algorithm** as the Node.js SDK:
-
-1. Parse API key (`VRTX.encodedId.key`)
-2. Derive signing key using HMAC-SHA256
-3. Build header and payload with identical structure
-4. Base64URL encode (without padding)
-5. Sign with HMAC-SHA256
-
-This ensures JWTs generated by Java are identical to those from Node.js, maintaining perfect compatibility with React providers and other frontend frameworks.
-
-## Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/teamvortexsoftware/vortex-java-sdk.git
-
-# Build with Maven
-mvn clean install
-
-# Run tests
-mvn test
-
-# Generate documentation
-mvn javadoc:javadoc
-```
-
-## Examples
-
-### Complete Spring Boot Example
+**Signature:**
 
 ```java
-@RestController
-@RequestMapping("/api/vortex")
-public class MyVortexController {
-
-    private final VortexClient vortexClient;
-
-    public MyVortexController(VortexClient vortexClient) {
-        this.vortexClient = vortexClient;
-    }
-
-    @PostMapping("/jwt")
-    public ResponseEntity<Map<String, String>> generateJWT(HttpServletRequest request) {
-        try {
-            // Extract user from request
-            String userId = getCurrentUserId(request);
-            String userEmail = getCurrentUserEmail(request);
-
-            // Build user with admin scopes if applicable
-            User user = new User(userId, userEmail);
-            if (userIsAutojoinAdmin(request)) {
-                user.setAdminScopes(Arrays.asList("autojoin"));
-            }
-
-            String jwt = vortexClient.generateJwt(user, null);
-            return ResponseEntity.ok(Map.of("jwt", jwt));
-
-        } catch (VortexException e) {
-            return ResponseEntity.status(500)
-                .body(Map.of("error", "Failed to generate JWT"));
-        }
-    }
-}
+generateToken(GenerateTokenPayload payload): String
 ```
 
-### Standalone Usage Example
+**Parameters:**
+
+| Name      | Type                   | Required | Description                                       |
+| --------- | ---------------------- | -------- | ------------------------------------------------- |
+| `payload` | `GenerateTokenPayload` | ✓        | Data to sign (user, component, scope, vars, etc.) |
+
+**Returns:** `String`
+— Signed JWT token string
+
+_Added in v0.8.0_
+
+---
+
+### `getInvitation()`
+
+Get a specific invitation by ID
+
+**Signature:**
 
 ```java
-public class VortexExample {
-    public static void main(String[] args) {
-        try (VortexClient client = new VortexClient("VRTX.your.api.key")) {
-
-            // Create user
-            User user = new User("user-123", "user@example.com");
-            user.setAdminScopes(Arrays.asList("autojoin"));
-
-            // Generate JWT
-            String jwt = client.generateJwt(user, null);
-            System.out.println("Generated JWT: " + jwt);
-
-            // Get invitations
-            List<InvitationResult> invitations = client.getInvitationsByTarget(
-                "email",
-                "user@example.com"
-            );
-            System.out.println("Found " + invitations.size() + " invitations");
-
-        } catch (VortexException e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-    }
-}
+getInvitation(String invitationId): InvitationResult
 ```
 
-## License
+**Parameters:**
 
-Licensed under the MIT License. See LICENSE file for details.
+| Name           | Type     | Required | Description       |
+| -------------- | -------- | -------- | ----------------- |
+| `invitationId` | `String` | ✓        | The invitation ID |
+
+**Returns:** `InvitationResult`
+— The invitation details
+
+**Example:**
+
+```java
+InvitationResult invitation = client.getInvitation("inv-123");
+System.out.println("Status: " + invitation.getStatus());
+```
+
+_Added in v0.1.0_
+
+---
+
+### `acceptInvitation()`
+
+Accept a single invitation (recommended method)
+
+**Signature:**
+
+```java
+acceptInvitation(String invitationId, AcceptUser user): InvitationResult
+```
+
+**Parameters:**
+
+| Name           | Type         | Required | Description                         |
+| -------------- | ------------ | -------- | ----------------------------------- |
+| `invitationId` | `String`     | ✓        | Single invitation ID to accept      |
+| `user`         | `AcceptUser` | ✓        | User object with email and/or phone |
+
+**Returns:** `InvitationResult`
+— The accepted invitation result
+
+**Example:**
+
+```java
+AcceptUser user = new AcceptUser()
+.setEmail("user@example.com")
+.setName("John Doe");
+InvitationResult result = client.acceptInvitation("inv-123", user);
+```
+
+_Added in v0.6.0_
+
+---
+
+## All Methods
+
+<details>
+<summary>Click to expand full method reference</summary>
+
+### `generateJwt()`
+
+Generate a JWT using the same algorithm as the Node.js SDK
+
+**Signature:**
+
+```java
+generateJwt(Object> params): String
+```
+
+**Parameters:**
+
+| Name     | Type      | Required | Description                                |
+| -------- | --------- | -------- | ------------------------------------------ |
+| `params` | `Object>` | ✓        | Map containing "user" key with User object |
+
+**Returns:** `String`
+— JWT token string
+
+_Added in v0.3.0_
+
+---
+
+### `getInvitationsByTarget()`
+
+Get invitations by target (email, username, phoneNumber)
+
+**Signature:**
+
+```java
+getInvitationsByTarget(String targetType, String targetValue): List<InvitationResult>
+```
+
+**Parameters:**
+
+| Name          | Type     | Required | Description                         |
+| ------------- | -------- | -------- | ----------------------------------- |
+| `targetType`  | `String` | ✓        | Type of target (email, phone, etc.) |
+| `targetValue` | `String` | ✓        | The target value                    |
+
+**Returns:** `List<InvitationResult>`
+— List of invitations
+
+_Added in v0.1.0_
+
+---
+
+### `revokeInvitation()`
+
+Revoke (delete) an invitation
+
+**Signature:**
+
+```java
+revokeInvitation(String invitationId): void
+```
+
+**Parameters:**
+
+| Name           | Type     | Required | Description                 |
+| -------------- | -------- | -------- | --------------------------- |
+| `invitationId` | `String` | ✓        | The invitation ID to revoke |
+
+**Returns:** `void`
+
+_Added in v0.1.0_
+
+---
+
+### `deleteInvitationsByScope()`
+
+Delete all invitations for a specific scope
+
+**Signature:**
+
+```java
+deleteInvitationsByScope(String scopeType, String scope): void
+```
+
+**Parameters:**
+
+| Name        | Type     | Required | Description                               |
+| ----------- | -------- | -------- | ----------------------------------------- |
+| `scopeType` | `String` | ✓        | The scope type (organization, team, etc.) |
+| `scope`     | `String` | ✓        | The scope identifier                      |
+
+**Returns:** `void`
+
+_Added in v0.4.0_
+
+---
+
+### `getInvitationsByScope()`
+
+Get all invitations for a specific scope
+
+**Signature:**
+
+```java
+getInvitationsByScope(String scopeType, String scope): List<InvitationResult>
+```
+
+**Parameters:**
+
+| Name        | Type     | Required | Description                               |
+| ----------- | -------- | -------- | ----------------------------------------- |
+| `scopeType` | `String` | ✓        | The scope type (organization, team, etc.) |
+| `scope`     | `String` | ✓        | The scope identifier                      |
+
+**Returns:** `List<InvitationResult>`
+— List of invitations for the scope
+
+_Added in v0.4.0_
+
+---
+
+### `reinvite()`
+
+Reinvite a user (send invitation again)
+
+**Signature:**
+
+```java
+reinvite(String invitationId): InvitationResult
+```
+
+**Parameters:**
+
+| Name           | Type     | Required | Description                   |
+| -------------- | -------- | -------- | ----------------------------- |
+| `invitationId` | `String` | ✓        | The invitation ID to reinvite |
+
+**Returns:** `InvitationResult`
+— The reinvited invitation result
+
+_Added in v0.2.0_
+
+---
+
+### `getAutojoinDomains()`
+
+Get autojoin domains configured for a specific scope
+
+**Signature:**
+
+```java
+getAutojoinDomains(String scopeType, String scope): AutojoinDomainsResponse
+```
+
+**Parameters:**
+
+| Name        | Type     | Required | Description                                                 |
+| ----------- | -------- | -------- | ----------------------------------------------------------- |
+| `scopeType` | `String` | ✓        | The type of scope (e.g., "organization", "team", "project") |
+| `scope`     | `String` | ✓        | The scope identifier (customer's group ID)                  |
+
+**Returns:** `AutojoinDomainsResponse`
+— AutojoinDomainsResponse with autojoin domains and invitation
+
+_Added in v0.6.0_
+
+---
+
+### `configureAutojoin()`
+
+Configure autojoin domains for a specific scope
+
+**Signature:**
+
+```java
+configureAutojoin(ConfigureAutojoinRequest request): AutojoinDomainsResponse
+```
+
+**Parameters:**
+
+| Name      | Type                       | Required | Description                    |
+| --------- | -------------------------- | -------- | ------------------------------ |
+| `request` | `ConfigureAutojoinRequest` | ✓        | The configure autojoin request |
+
+**Returns:** `AutojoinDomainsResponse`
+— AutojoinDomainsResponse with updated autojoin domains
+
+_Added in v0.6.0_
+
+---
+
+</details>
+
+## Types
+
+<details>
+<summary>Click to expand type definitions</summary>
+
+### `GenerateTokenPayload`
+
+| Field       | Type                  | Required | Description                                                                                                                                                     |
+| ----------- | --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user`      | `TokenUser`           |          | The authenticated user who will be using the Vortex component. Required for most operations to attribute invitations correctly.                                 |
+| `component` | `String`              |          | Component ID to generate token for (from your Vortex dashboard). If not specified, uses the default component for your account.                                 |
+| `trigger`   | `String`              |          | Trigger context for the invitation (e.g., "signup", "share-button", "referral-page"). Used for analytics to track which UI elements drive the most invitations. |
+| `embed`     | `String`              |          | Embed mode identifier for embedded invitation widgets. Determines how the component renders in your UI.                                                         |
+| `scope`     | `String`              |          | Scope identifier to restrict invitations to a specific team/org/workspace. Format: "scopeType:scopeId" (e.g., "team:team-123").                                 |
+| `vars`      | `Map<String, Object>` |          | Custom variables to pass to the component for template rendering. These can be used in email templates and invitation messages.                                 |
+
+### `TokenUser`
+
+| Field                 | Type           | Required | Description                                                                                                                                                                                             |
+| --------------------- | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                  | `String`       | ✓        | Unique identifier for the user in your system. Used to attribute invitations and track referral chains.                                                                                                 |
+| `name`                | `String`       |          | Display name shown to invitation recipients (e.g., "John invited you"). If not provided, falls back to email or a generic message.                                                                      |
+| `email`               | `String`       |          | User's email address. Used for reply-to in invitation emails and shown to recipients so they know who invited them.                                                                                     |
+| `avatarUrl`           | `String`       |          | URL to user's avatar image. Displayed in invitation emails and widgets to personalize the invitation experience.                                                                                        |
+| `adminScopes`         | `List<String>` |          | List of scope IDs where this user has admin privileges. Admins can manage invitations and view analytics for these scopes. Format: ["scopeType:scopeId", ...] (e.g., ["team:team-123", "org:org-456"]). |
+| `allowedEmailDomains` | `List<String>` |          | Restrict invitations to specific email domains. If set, users can only invite people with emails matching these domains. Useful for enterprise accounts (e.g., ["acme.com", "acme.co.uk"]).             |
+
+### `AcceptUser`
+
+| Field        | Type      | Required | Description                                                                                                                                                                                                  |
+| ------------ | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `email`      | `String`  |          | Email address of the user accepting the invitation. At least one of email or phone is required.                                                                                                              |
+| `phone`      | `String`  |          | Phone number of the user accepting the invitation. At least one of email or phone is required. Include country code (e.g., "+1555123456").                                                                   |
+| `name`       | `String`  |          | Display name of the accepting user. Used in notifications to the inviter (e.g., "John Doe accepted your invitation").                                                                                        |
+| `isExisting` | `Boolean` |          | Whether the accepting user was already registered in your system. Set to true for existing users, false for new signups, null if unknown. Used for analytics to track new vs existing user conversion rates. |
+
+### `InvitationResult`
+
+| Field                     | Type                         | Required | Description                                                                                                            |
+| ------------------------- | ---------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `id`                      | `String`                     | ✓        | Unique identifier for this invitation                                                                                  |
+| `accountId`               | `String`                     |          | Your Vortex account ID                                                                                                 |
+| `clickThroughs`           | `int`                        | ✓        | Number of times the invitation link was clicked                                                                        |
+| `formSubmissionData`      | `Map<String, Object>`        |          | Invitation form data submitted by the user, including invitee identifiers (such as email addresses, phone numbers, or internal IDs) and the values of any custom fields. |
+| `configurationAttributes` | `Map<String, Object>`        |          |                                                                                                                        |
+| `attributes`              | `Map<String, Object>`        |          | Custom attributes attached to this invitation                                                                          |
+| `createdAt`               | `String`                     |          | ISO 8601 timestamp when the invitation was created                                                                     |
+| `deactivated`             | `boolean`                    | ✓        | Whether this invitation has been revoked or expired                                                                    |
+| `deliveryCount`           | `int`                        | ✓        | Number of times the invitation was sent (including reminders)                                                          |
+| `deliveryTypes`           | `List<DeliveryType>`         |          | Channels used to deliver this invitation (email, sms, share link)                                                      |
+| `foreignCreatorId`        | `String`                     |          | Your internal user ID for the person who created this invitation                                                       |
+| `invitationType`          | `InvitationType`             |          | Type of invitation: PERSONAL (1:1) or BROADCAST (1:many)                                                               |
+| `modifiedAt`              | `String`                     |          | ISO 8601 timestamp of last modification                                                                                |
+| `status`                  | `InvitationStatus`           |          | Current status: CREATED, DELIVERED, CLICKED, ACCEPTED, or EXPIRED                                                      |
+| `target`                  | `List<InvitationTarget>`     |          | List of invitation recipients with their contact info and status                                                       |
+| `views`                   | `int`                        | ✓        | Number of times the invitation page was viewed                                                                         |
+| `widgetConfigurationId`   | `String`                     |          | Widget configuration ID used for this invitation                                                                       |
+| `deploymentId`            | `String`                     |          | Deployment ID this invitation belongs to                                                                               |
+| `groups`                  | `List<InvitationScope>`      |          | Scopes (teams/orgs) this invitation grants access to                                                                   |
+| `accepts`                 | `List<InvitationAcceptance>` |          | List of acceptance records if the invitation was accepted (optional, may be null)                                      |
+| `scope`                   | `String`                     |          | Primary scope identifier (e.g., "team-123")                                                                            |
+| `scopeType`               | `String`                     |          | Type of the primary scope (e.g., "team", "organization")                                                               |
+| `expired`                 | `boolean`                    | ✓        | Whether this invitation has passed its expiration date                                                                 |
+| `expires`                 | `String`                     |          | ISO 8601 timestamp when this invitation expires                                                                        |
+| `metadata`                | `Map<String, Object>`        |          | Custom metadata attached to this invitation                                                                            |
+| `passThrough`             | `String`                     |          | Pass-through data returned unchanged in webhooks and callbacks                                                         |
+| `source`                  | `String`                     |          | Source identifier for tracking (e.g., "ios-app", "web-dashboard")                                                      |
+| `subtype`                 | `String`                     |          | Subtype for analytics segmentation (e.g., "pymk", "find-friends")                                                      |
+| `creatorName`             | `String`                     |          | Display name of the user who created this invitation                                                                   |
+| `creatorAvatarUrl`        | `String`                     |          | Avatar URL of the user who created this invitation                                                                     |
+
+### `InvitationTarget`
+
+| Field       | Type                   | Required | Description                                                             |
+| ----------- | ---------------------- | -------- | ----------------------------------------------------------------------- |
+| `type`      | `InvitationTargetType` | ✓        | Delivery channel: EMAIL, PHONE, SHARE (link), or INTERNAL (in-app)      |
+| `value`     | `String`               |          | Target address: email, phone number with country code, or share link ID |
+| `name`      | `String`               |          | Display name of the recipient (e.g., "John Doe")                        |
+| `avatarUrl` | `String`               |          | Avatar URL for the recipient, shown in invitation lists and widgets     |
+
+### `InvitationScope`
+
+Represents a group associated with an invitation. This matches the MemberGroups table structure from the API response.
+
+| Field       | Type     | Required | Description                                          |
+| ----------- | -------- | -------- | ---------------------------------------------------- |
+| `id`        | `String` | ✓        | Vortex internal UUID                                 |
+| `accountId` | `String` |          | Vortex account ID                                    |
+| `groupId`   | `String` |          | Customer's group ID (the ID they provided to Vortex) |
+| `type`      | `String` | ✓        | Group type (e.g., "workspace", "team")               |
+| `name`      | `String` |          | Group name                                           |
+| `createdAt` | `String` |          | ISO 8601 timestamp when the group was created        |
+
+### `AutojoinDomain`
+
+Represents an autojoin domain - users with matching email domains automatically join the scope
+
+| Field    | Type     | Required | Description                                            |
+| -------- | -------- | -------- | ------------------------------------------------------ |
+| `id`     | `String` | ✓        | Unique identifier for this autojoin configuration      |
+| `domain` | `String` |          | Email domain that triggers autojoin (e.g., "acme.com") |
+
+### `CreateInvitationScope`
+
+| Field     | Type     | Required | Description                                               |
+| --------- | -------- | -------- | --------------------------------------------------------- |
+| `type`    | `String` | ✓        | Scope type (e.g., "team", "organization", "workspace")    |
+| `groupId` | `String` |          | Your internal scope/group identifier                      |
+| `name`    | `String` |          | Display name shown to invitees (e.g., "Engineering Team") |
+
+### `CreateInvitationTarget`
+
+| Field       | Type                         | Required | Description                                                                  |
+| ----------- | ---------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `type`      | `CreateInvitationTargetType` | ✓        | Delivery channel: EMAIL, PHONE, SHARE (link), or INTERNAL (in-app)           |
+| `value`     | `String`                     |          | Target address: email, phone number (with country code), or internal user ID |
+| `name`      | `String`                     |          | Display name of the recipient (shown in invitation emails and UI)            |
+| `avatarUrl` | `String`                     |          | Avatar URL for the recipient (displayed in invitation lists)                 |
+
+### `Group`
+
+| Field   | Type     | Required | Description                                              |
+| ------- | -------- | -------- | -------------------------------------------------------- |
+| `type`  | `String` | ✓        | Scope type (e.g., "team", "organization", "workspace")   |
+| `id`    | `String` | ✓        | Legacy scope identifier. Use scopeId instead.            |
+| `scope` | `String` |          | Your internal scope/group identifier (preferred over id) |
+| `name`  | `String` |          | Display name for the scope (e.g., "Engineering Team")    |
+
+### `Identifier`
+
+Represents an identifier for a user - used in JWT generation to link user across channels
+
+| Field   | Type     | Required | Description                                                   |
+| ------- | -------- | -------- | ------------------------------------------------------------- |
+| `type`  | `String` | ✓        | Identifier type: "email", "phone", "username", or custom type |
+| `value` | `String` |          | The identifier value (email address, phone number, etc.)      |
+
+### `InvitationAcceptance`
+
+| Field         | Type                  | Required | Description                                                        |
+| ------------- | --------------------- | -------- | ------------------------------------------------------------------ |
+| `id`          | `String`              | ✓        | Unique identifier for this acceptance record                       |
+| `accountId`   | `String`              |          | Your Vortex account ID                                             |
+| `acceptedAt`  | `String`              |          | ISO 8601 timestamp when the invitation was accepted                |
+| `targetType`  | `String`              |          | How the recipient was identified: "email" or "phone"               |
+| `targetValue` | `String`              |          | The email or phone number of the person who accepted               |
+| `identifiers` | `Map<String, String>` |          | Additional identifiers for the accepting user (e.g., external IDs) |
+
+### `Inviter`
+
+| Field       | Type     | Required | Description                                                       |
+| ----------- | -------- | -------- | ----------------------------------------------------------------- |
+| `userId`    | `String` |          | Your internal user ID for the inviter (required for attribution)  |
+| `userEmail` | `String` |          | Inviter's email address (used for reply-to and identification)    |
+| `name`      | `String` |          | Display name shown to recipients (e.g., "John invited you to...") |
+| `avatarUrl` | `String` |          | Avatar URL displayed in invitation emails and widgets             |
+
+### `JWTPayload`
+
+| Field                 | Type               | Required | Description                                                                  |
+| --------------------- | ------------------ | -------- | ---------------------------------------------------------------------------- |
+| `userId`              | `String`           |          | Your internal user ID (required - used for invitation attribution)           |
+| `userEmail`           | `String`           |          | User's email address (preferred format for user identification)              |
+| `userIsAutojoinAdmin` | `Boolean`          |          | Whether user can manage autojoin settings for their scopes                   |
+| `identifiers`         | `List<Identifier>` |          | Legacy: List of user identifiers. Use userEmail instead.                     |
+| `groups`              | `List<Group>`      |          | Legacy: List of groups/scopes. Use scope parameter in generateToken instead. |
+| `role`                | `String`           |          | Legacy: User role. No longer used.                                           |
+
+### `UnfurlConfig`
+
+| Field         | Type     | Required | Description                                                           |
+| ------------- | -------- | -------- | --------------------------------------------------------------------- |
+| `title`       | `String` |          | The title shown in link previews (og:title)                           |
+| `description` | `String` |          | The description shown in link previews (og:description)               |
+| `image`       | `String` |          | The image URL shown in link previews (og:image) - must be HTTPS       |
+| `type`        | `String` | ✓        | The Open Graph type (og:type) - e.g., 'website', 'article', 'product' |
+| `siteName`    | `String` |          | The site name shown in link previews (og:site_name)                   |
+
+### `User`
+
+| Field                 | Type           | Required | Description                                                           |
+| --------------------- | -------------- | -------- | --------------------------------------------------------------------- |
+| `id`                  | `String`       | ✓        | Your internal user ID (required for invitation attribution)           |
+| `email`               | `String`       |          | User's email address (used for identification and reply-to)           |
+| `name`                | `String`       |          | Display name shown to recipients (e.g., "John invited you")           |
+| `avatarUrl`           | `String`       |          | Avatar URL displayed in invitation emails and widgets (must be HTTPS) |
+| `adminScopes`         | `List<String>` |          | List of scopes where user has admin privileges (e.g., ["autojoin"])   |
+| `allowedEmailDomains` | `List<String>` |          | Restrict invitations to these email domains (e.g., ["acme.com"])      |
+
+### `VortexAnalyticsEvent`
+
+| Field                   | Type                  | Required | Description                                                       |
+| ----------------------- | --------------------- | -------- | ----------------------------------------------------------------- |
+| `id`                    | `String`              | ✓        | Unique identifier for this analytics event                        |
+| `name`                  | `String`              |          | Event name (e.g., "widget.opened", "invite.sent", "link.clicked") |
+| `accountId`             | `String`              |          | Your Vortex account ID                                            |
+| `organizationId`        | `String`              |          | Organization ID if using multi-org setup                          |
+| `projectId`             | `String`              |          | Project ID the event belongs to                                   |
+| `environmentId`         | `String`              |          | Environment ID (production, staging, etc.)                        |
+| `deploymentId`          | `String`              |          | Deployment ID the event is associated with                        |
+| `widgetConfigurationId` | `String`              |          | Widget configuration ID that generated this event                 |
+| `foreignUserId`         | `String`              |          | Your internal user ID who triggered the event                     |
+| `sessionId`             | `String`              |          | Client session ID for grouping related events                     |
+| `payload`               | `Map<String, Object>` |          | Event-specific payload data                                       |
+| `platform`              | `String`              |          | Platform: "web", "ios", "android", "react-native"                 |
+| `segmentation`          | `String`              |          | A/B test segmentation identifier                                  |
+| `timestamp`             | `String`              |          | ISO 8601 timestamp when the event occurred                        |
+
+### `VortexWebhookEvent`
+
+| Field           | Type                  | Required | Description                                                |
+| --------------- | --------------------- | -------- | ---------------------------------------------------------- |
+| `id`            | `String`              | ✓        | Unique identifier for this webhook event                   |
+| `type`          | `String`              | ✓        | Event type (e.g., "invitation.accepted", "member.created") |
+| `timestamp`     | `String`              |          | ISO 8601 timestamp when the event occurred                 |
+| `accountId`     | `String`              |          | Your Vortex account ID                                     |
+| `environmentId` | `String`              |          | Environment ID (production, staging, etc.)                 |
+| `sourceTable`   | `String`              |          | Internal: database table that triggered this event         |
+| `operation`     | `String`              |          | Database operation: "INSERT", "UPDATE", or "DELETE"        |
+| `data`          | `Map<String, Object>` |          | Event payload containing the relevant entity data          |
+
+</details>
 
 ## Webhooks
 
-The SDK provides built-in support for verifying and parsing incoming webhook events from Vortex.
+Webhooks let your server receive real-time notifications when events happen in Vortex. Use them to sync invitation state with your database, trigger onboarding flows, update your CRM, or send internal notifications.
+
+### Setup
+
+1. Go to your Vortex dashboard → Integrations → Webhooks tab
+2. Click "Add Webhook"
+3. Enter your endpoint URL (must be HTTPS in production)
+4. Copy the signing secret — you'll use this to verify webhook signatures
+5. Select which events you want to receive
+
+### Verifying Webhooks
+
+Always verify webhook signatures using `VortexWebhooks.verifySignature()` to ensure requests are from Vortex.
+The signature is sent in the `X-Vortex-Signature` header.
+
+### Example: Spring Boot webhook handler
 
 ```java
 import com.vortexsoftware.sdk.VortexWebhooks;
-import com.vortexsoftware.sdk.VortexWebhookSignatureException;
-import com.vortexsoftware.sdk.types.VortexWebhookEvent;
-import com.vortexsoftware.sdk.types.VortexAnalyticsEvent;
-import com.vortexsoftware.sdk.types.WebhookEventType;
+import org.springframework.web.bind.annotation.*;
 
-VortexWebhooks webhooks = new VortexWebhooks(System.getenv("VORTEX_WEBHOOK_SECRET"));
+@RestController
+public class WebhookController {
+    private final VortexWebhooks webhooks = new VortexWebhooks(
+        System.getenv("VORTEX_WEBHOOK_SECRET")
+    );
 
-// In your HTTP handler (Spring Boot example):
-@PostMapping("/webhooks/vortex")
-public ResponseEntity<String> handleWebhook(
-        @RequestBody String payload,
-        @RequestHeader("X-Vortex-Signature") String signature) {
-    try {
-        Object event = webhooks.constructEvent(payload, signature);
-
-        if (event instanceof VortexWebhookEvent) {
-            VortexWebhookEvent we = (VortexWebhookEvent) event;
-            if (WebhookEventType.INVITATION_ACCEPTED.equals(we.getType())) {
-                // Handle invitation accepted
+    @PostMapping("/webhooks/vortex")
+    public Map<String, Object> handleWebhook(
+        @RequestBody String body,
+        @RequestHeader("X-Vortex-Signature") String signature
+    ) {
+        try {
+            // Verify the signature
+            if (!webhooks.verifySignature(body, signature)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
             }
-        } else if (event instanceof VortexAnalyticsEvent) {
-            VortexAnalyticsEvent ae = (VortexAnalyticsEvent) event;
-            System.out.println("Analytics: " + ae.getName());
-        }
 
-        return ResponseEntity.ok("OK");
-    } catch (VortexWebhookSignatureException e) {
-        return ResponseEntity.badRequest().body("Invalid signature");
+            // Parse the event
+            WebhookEvent event = webhooks.parseEvent(body);
+
+            switch (event.getType()) {
+                case "invitation.accepted":
+                    // User accepted an invitation — activate their account
+                    System.out.println("Accepted: " + event.getData().getTargetEmail());
+                    break;
+                case "member.created":
+                    // New member joined via invitation
+                    System.out.println("New member: " + event.getData());
+                    break;
+            }
+
+            return Map.of("received", true);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Webhook error");
+        }
     }
 }
 ```
 
-## Support
+### Common Use Cases
 
-For support, please contact the Vortex team or create an issue in the repository.
+**Activate users on acceptance**
+
+When invitation.accepted fires, mark the user as active in your database and trigger your onboarding flow.
+
+**Track invitation performance**
+
+Monitor email.delivered, email.opened, and link.clicked events to measure invitation funnel metrics.
+
+**Sync team membership**
+
+Use member.created and group.member.added to keep your internal membership records in sync.
+
+**Alert on delivery issues**
+
+Watch for email.bounced events to proactively reach out via alternative channels.
+
+### Supported Events
+
+| Event                        | Description                                          |
+| ---------------------------- | ---------------------------------------------------- |
+| `invitation.created`         | A new invitation was created                         |
+| `invitation.accepted`        | An invitation was accepted by the recipient          |
+| `invitation.deactivated`     | An invitation was deactivated (revoked or expired)   |
+| `invitation.email.delivered` | Invitation email was successfully delivered          |
+| `invitation.email.bounced`   | Invitation email bounced (invalid address)           |
+| `invitation.email.opened`    | Recipient opened the invitation email                |
+| `invitation.link.clicked`    | Recipient clicked the invitation link                |
+| `invitation.reminder.sent`   | A reminder email was sent for a pending invitation   |
+| `member.created`             | A new member was created from an accepted invitation |
+| `group.member.added`         | A member was added to a scope/group                  |
+| `deployment.created`         | A new deployment configuration was created           |
+| `deployment.deactivated`     | A deployment was deactivated                         |
+| `abtest.started`             | An A/B test was started                              |
+| `abtest.winner_declared`     | An A/B test winner was declared                      |
+| `email.complained`           | Recipient marked the email as spam                   |
+
+## Error Handling
+
+All SDK errors extend `VortexException`.
+
+| Error                             | Description                                                                                                                     |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `VortexWebhookSignatureException` | Thrown when webhook signature verification fails. Check that you are using the raw request body and the correct signing secret. |
+| `VortexException`                 | Thrown for validation errors (e.g., missing API key, invalid parameters) or API failures                                        |
+
+---
+
+<!-- Generated from SDK v1.20.0 manifest -->
