@@ -367,4 +367,171 @@ public class VortexClientTest {
         assertNotNull(client.generateToken(payload, new GenerateTokenOptions("24h")));
         assertNotNull(client.generateToken(payload, new GenerateTokenOptions("7d")));
     }
+
+    // ============ Comprehensive generateToken parseExpiresIn Tests ============
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ValidMinutes() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("5m"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ValidHours() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("1h"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ValidDays() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("7d"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_24HourExpiration() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("24h"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ValidInteger() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions(3600));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_LargeInteger() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions(86400));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_InvalidFormatString() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions("invalid")));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_InvalidUnitX() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions("10x")));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ZeroMinutes() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions("0m")));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ZeroHours() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions("0h")));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ZeroDays() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions("0d")));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_ZeroInteger() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions(0)));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_NegativeInteger() {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        assertThrows(VortexException.class, () -> 
+            client.generateToken(payload, new GenerateTokenOptions(-60)));
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_MultipleDigitsMinutes() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("120m"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_MultipleDigitsHours() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("48h"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenParseExpiresIn_MultipleDigitsDays() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("user-123"));
+        String token = client.generateToken(payload, new GenerateTokenOptions("30d"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    // ============ Edge Cases Tests ============
+
+    @Test
+    void testGenerateTokenEdgeCases_MissingUserId() throws VortexException {
+        // Test that token can be generated without user.id but should log warning (not enforced in Java)
+        GenerateTokenPayload payload = new GenerateTokenPayload();
+        String token = client.generateToken(payload);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenEdgeCases_EmptyUserId() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser(""));
+        String token = client.generateToken(payload);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenEdgeCases_NumericUserId() throws VortexException {
+        GenerateTokenPayload payload = new GenerateTokenPayload().setUser(new TokenUser("12345"));
+        String token = client.generateToken(payload);
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
+
+    @Test
+    void testGenerateTokenEdgeCases_ComplexPayload() throws VortexException {
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("key1", "value1");
+        vars.put("key2", Map.of("nested", "value"));
+        
+        GenerateTokenPayload payload = new GenerateTokenPayload()
+                .setComponent("widget-complex")
+                .setUser(new TokenUser("user-abc").setName("Complex User").setEmail("complex@example.com"))
+                .setScope("workspace_complex")
+                .setVars(vars);
+        
+        String token = client.generateToken(payload, new GenerateTokenOptions("24h"));
+        assertNotNull(token);
+        assertEquals(3, token.split("\\.").length);
+    }
 }
